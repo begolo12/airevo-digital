@@ -860,8 +860,28 @@ export async function toggleRecurringRule(
   if (!scope) return fail(NO_SCOPE);
 
   const id = String(formData.get("id") ?? "");
-  const rule = findScoped(getStore().recurringRules, id, scope.workspaceId);
+  const store = getStore();
+  const rule = findScoped(store.recurringRules, id, scope.workspaceId);
   if (!rule) return fail("Aturan tidak ditemukan.");
+
+  /*
+   * Mengaktifkan aturan yang akun atau kategorinya sudah diarsipkan akan
+   * menghasilkan transaksi tanpa akun yang sah. Tolak dengan penjelasan,
+   * bukan diam-diam tidak membuat transaksi.
+   */
+  if (!rule.active) {
+    const account = store.accounts.find((item) => item.id === rule.accountId);
+    const category = rule.categoryId
+      ? store.categories.find((item) => item.id === rule.categoryId)
+      : null;
+
+    if (account?.archived) {
+      return fail("Akun aturan ini sudah diarsipkan. Ubah aturannya dulu.");
+    }
+    if (category?.archived) {
+      return fail("Kategori aturan ini sudah diarsipkan. Ubah aturannya dulu.");
+    }
+  }
 
   rule.active = !rule.active;
   revalidateApp();

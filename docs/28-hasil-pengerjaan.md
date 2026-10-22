@@ -55,7 +55,7 @@ direncanakan. Setiap klaim disertai angka atau perintah yang bisa diulang.
 | `bg-white` (menyilaukan di mode gelap) | 5 | **0** |
 | Korupsi teks & kelas | 22+ | **0** |
 | Tautan rusak | tidak diketahui | **0** (67 rute diperiksa) |
-| Test | 401 | **655** |
+| Test | 401 | **657** |
 | Halaman diaudit | sebagian | **30 halaman × 3 ukuran** |
 | Temuan kontras | tidak diukur | **0** di kedua tema |
 | Pelanggaran aksesibilitas | tidak diukur | **0** di 46 pemeriksaan |
@@ -219,7 +219,22 @@ historis tiga bulan, dan beri tahu bahwa itu perkiraan.
 datanya tidak dalam bentuk yang saya harapkan?" — bukan hanya "apakah datanya
 ada?".
 
-### 3.11 Bug dark mode
+### 3.11 Aturan berulang menunjuk akun terarsip
+
+Urutan yang bisa terjadi: aturan dimatikan → akunnya diarsipkan → aturan
+diaktifkan kembali. Hasilnya aturan menunjuk akun terarsip, dan transaksi yang
+dibuatnya tidak masuk hitungan saldo mana pun.
+
+**Perbaikan dua lapis:**
+
+1. `toggleRecurringRule` menolak pengaktifan dengan pesan yang menjelaskan.
+2. `applyDueRules` menyaring akun dan kategori terarsip — sabuk pengaman bila
+   data sudah terlanjur tidak konsisten.
+
+Dua lapis, bukan satu, karena lapis pertama bergantung pada data yang rapi;
+lapis kedua tetap bekerja meski data dari versi lama tidak rapi.
+
+### 3.12 Bug dark mode
 
 | Bug | Akibat |
 | --- | --- |
@@ -693,7 +708,7 @@ Tautan rusak      : 0  (67 rute)
 
 tsc    : bersih
 lint   : bersih
-test   : 655 lulus (37 berkas)
+test   : 657 lulus (37 berkas)
 build  : ✓ Compiled successfully
 ```
 

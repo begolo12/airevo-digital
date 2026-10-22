@@ -168,19 +168,31 @@ export function applyDueRules(
     recurringRules: RecurringRule[];
     transactions: Array<Record<string, unknown>>;
     /** Rujukan yang masih ada, untuk menyaring aturan yang sudah tidak sah. */
-    accounts?: Array<{ id: string }>;
-    categories?: Array<{ id: string }>;
+    accounts?: Array<{ id: string; archived?: boolean }>;
+    categories?: Array<{ id: string; archived?: boolean }>;
   },
   workspaceId: string,
   today: string,
   createId: (prefix: string) => string,
   maxPerRun = 20,
 ): number {
+  /*
+   * Hanya akun dan kategori yang **belum diarsipkan**.
+   *
+   * Akun bisa diarsipkan setelah aturannya dimatikan, lalu aturannya
+   * diaktifkan kembali. Tanpa penyaringan ini, aturan itu membuat transaksi
+   * yang merujuk akun terarsip — transaksi tersebut tidak masuk hitungan saldo
+   * mana pun dan muncul tanpa nama akun.
+   */
   const accountIds = store.accounts
-    ? new Set(store.accounts.map((item) => item.id))
+    ? new Set(
+        store.accounts.filter((item) => !item.archived).map((item) => item.id),
+      )
     : null;
   const categoryIds = store.categories
-    ? new Set(store.categories.map((item) => item.id))
+    ? new Set(
+        store.categories.filter((item) => !item.archived).map((item) => item.id),
+      )
     : null;
 
   /*

@@ -299,7 +299,7 @@ export default async function LaporanPage() {
                       <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-2xs text-muted">
                         <span>
                           masuk{" "}
-                          <strong className="tnum text-mint-text">
+                          <strong className="tnum text-positive">
                             {formatIDR(month.income)}
                           </strong>
                         </span>

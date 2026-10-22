@@ -24,7 +24,7 @@ vi.mock("next/cache", async () => {
 
 const { getStore, resetStore } = await import("@/lib/data/store");
 const { setViewer } = await import("./helpers/session");
-const { archiveAccount, archiveCategory, createRecurringRule, runDueRecurring } =
+const { archiveAccount, archiveCategory, createRecurringRule, toggleRecurringRule, runDueRecurring } =
   await import("@/lib/data/actions");
 
 function form(fields: Record<string, string | number>): FormData {
@@ -172,6 +172,92 @@ describe("aturan yang merujuk entitas hilang", () => {
     const result = await runDueRecurring();
 
     expect(result.ok).toBe(true);
+    expect(store.transactions).toHaveLength(before);
+  });
+});
+
+describe("kasus tepi: aturan diaktifkan setelah akunnya diarsipkan", () => {
+  it("tidak membuat transaksi untuk akun yang sudah diarsipkan", async () => {
+    /*
+     * Urutan yang bisa terjadi di dunia nyata:
+     *
+     * 1. Aturan dimatikan → akun tidak lagi "dipakai aturan aktif"
+     * 2. Akun diarsipkan → sekarang akun terarsip
+     * 3. Aturan diaktifkan kembali → menunjuk akun terarsip
+     *
+     * Tanpa penyaringan akun terarsip, langkah 3 menghasilkan transaksi yang
+     * merujuk akun yang sudah tidak dipakai — tidak masuk saldo mana pun.
+     */
+    const account = unusedAccount();
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+
+    const created = await createRecurringRule(
+      form({
+        type: "expense",
+        amount: 75_000,
+        description: "Aturan akun terarsip",
+        accountId: account.id,
+        categoryId: familyCategory().id,
+        visibility: "household",
+        frequency: "monthly",
+        startAt: yesterday,
+      }),
+    );
+    expect(created.ok).toBe(true);
+
+    const rule = getStore().recurringRules.at(-1)!;
+
+    // 1. Matikan aturan, lalu arsipkan akun.
+    await toggleRecurringRule(form({ id: rule.id }));
+    expect((await archiveAccount(form({ id: account.id }))).ok).toBe(true);
+
+    // 2. Aktifkan kembali — harus DITOLAK karena akunnya terarsip.
+    const reactivate = await toggleRecurringRule(form({ id: rule.id }));
+    expect(reactivate.ok).toBe(false);
+    expect(reactivate.message).toMatch(/arsip/i);
+
+    // Aturan tetap nonaktif, jadi tidak ada transaksi.
+    expect(getStore().recurringRules.find((item) => item.id === rule.id)?.active).toBe(
+      false,
+    );
+
+    const before = getStore().transactions.length;
+    await runDueRecurring();
+    expect(getStore().transactions).toHaveLength(before);
+  });
+
+  it("lapis kedua: data tidak konsisten pun tidak menghasilkan transaksi", async () => {
+    /*
+     * Sabuk pengaman `applyDueRules` diuji terpisah: seandainya data sudah
+     * terlanjur tidak konsisten (mis. dari versi lama atau perubahan langsung
+     * di database), pembuatan transaksi tetap harus melewati aturan yang
+     * akunnya terarsip.
+     */
+    const store = getStore();
+    const account = unusedAccount();
+    account.archived = true;
+
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+
+    store.recurringRules.push({
+      id: "rr-akun-terarsip",
+      workspaceId: "ws-family",
+      type: "expense",
+      amount: 50_000,
+      description: "Menunjuk akun terarsip",
+      accountId: account.id,
+      categoryId: familyCategory().id,
+      visibility: "household",
+      frequency: "monthly",
+      startAt: yesterday,
+      nextAt: yesterday,
+      active: true,
+      createdAt: new Date().toISOString(),
+    });
+
+    const before = store.transactions.length;
+    await runDueRecurring();
+
     expect(store.transactions).toHaveLength(before);
   });
 });
