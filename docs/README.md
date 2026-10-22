@@ -47,6 +47,7 @@ diubah harus tercatat di sini sebelum dieksekusi.
 31. [29-uji-konkurensi.md](29-uji-konkurensi.md) — **uji tulis bersamaan ke Postgres: hasil & batasannya.**
 32. [30-dua-jalur-auth.md](30-dua-jalur-auth.md) — **auth aplikasi vs Neon Auth: kapan masing-masing.**
 33. [31-pembatas-laju-persisten.md](31-pembatas-laju-persisten.md) — **blokir login bertahan setelah restart.**
+34. [32-aplikasi-android.md](32-aplikasi-android.md) — **aplikasi Android Flutter + REST API.**
 
 ## Status dokumen
 
@@ -71,6 +72,7 @@ diubah harus tercatat di sini sebelum dieksekusi.
 | 29-uji-konkurensi.md | **Implemented** — konkurensi diuji, pola aman |
 | 30-dua-jalur-auth.md | **Dokumentasi** — dua jalur auth dijelaskan |
 | 31-pembatas-laju-persisten.md | **Implemented** — rate limit persisten |
+| 32-aplikasi-android.md | **Implemented** — aplikasi Android Flutter |
 
 Status: `Draft` → `Disetujui` → `Implemented` → `Deprecated`.
 

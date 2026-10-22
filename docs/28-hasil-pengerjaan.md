@@ -38,6 +38,7 @@ direncanakan. Setiap klaim disertai angka atau perintah yang bisa diulang.
 | 3.10 Pisah tagihan | **Selesai** | 25 test + terbukti end-to-end |
 | 3.11 Lupa PIN | **Selesai** | 8 test + terbukti end-to-end |
 | 3.12 Proyeksi arus kas | **Selesai** | 27 test + tampil di Laporan |
+| 5.1 Aplikasi Android | **Selesai** | Flutter + REST API; lihat [32](32-aplikasi-android.md) |
 | 3.13 Korupsi teks halaman Tugas | **Selesai** | 7 kata + pemindai diperkuat |
 | 4.1 Rate limit persisten | **Selesai** | Postgres; lihat [31](31-pembatas-laju-persisten.md) |
 | 4.2 Uji konkurensi | **Selesai** | pola aman; lihat [29](29-uji-konkurensi.md) |
@@ -57,7 +58,7 @@ direncanakan. Setiap klaim disertai angka atau perintah yang bisa diulang.
 | `bg-white` (menyilaukan di mode gelap) | 5 | **0** |
 | Korupsi teks & kelas | 22+ | **0** |
 | Tautan rusak | tidak diketahui | **0** (67 rute diperiksa) |
-| Test | 401 | **657** |
+| Test | 401 | **673** |
 | Halaman diaudit | sebagian | **30 halaman × 3 ukuran** |
 | Temuan kontras | tidak diukur | **0** di kedua tema |
 | Pelanggaran aksesibilitas | tidak diukur | **0** di 46 pemeriksaan |
@@ -754,7 +755,7 @@ Tautan rusak      : 0  (67 rute)
 
 tsc    : bersih
 lint   : bersih
-test   : 657 lulus (37 berkas)
+test   : 673 lulus (38 berkas)
 build  : ✓ Compiled successfully
 ```
 
