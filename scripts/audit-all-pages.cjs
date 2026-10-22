@@ -44,15 +44,24 @@ async function login(page) {
   await page.waitForTimeout(1200);
 }
 
+/**
+ * Ukuran layar yang diperiksa.
+ *
+ * 1920 termasuk kriteria penerimaan: layar lebar mudah memunculkan luapan
+ * horizontal yang tidak terlihat di 1440 — mis. tabel dengan lebar tetap.
+ */
+const VIEWPORTS = [
+  { width: 390, height: 844, name: "mobile" },
+  { width: 768, height: 1024, name: "tablet" },
+  { width: 1440, height: 900, name: "desktop" },
+  { width: 1920, height: 1080, name: "wide" },
+];
+
 (async () => {
   const browser = await chromium.launch();
   const problems = [];
 
-  for (const viewport of [
-    { width: 390, height: 844, name: "mobile" },
-    { width: 768, height: 1024, name: "tablet" },
-    { width: 1440, height: 900, name: "desktop" },
-  ]) {
+  for (const viewport of VIEWPORTS) {
     const context = await browser.newContext({ viewport });
     const page = await context.newPage();
 
@@ -117,7 +126,7 @@ async function login(page) {
 
   console.log(`\n${"=".repeat(60)}`);
   if (problems.length === 0) {
-    console.log("Semua halaman termuat bersih di 3 ukuran layar.");
+    console.log(`Semua halaman termuat bersih di ${VIEWPORTS.length} ukuran layar.`);
   } else {
     console.log(`${problems.length} masalah:\n`);
     for (const item of problems) {

@@ -661,7 +661,7 @@ Skrip ini bisa dijalankan ulang kapan saja. Semuanya ada di `scripts/`.
 | `scan-corruption.cjs` | Pola korupsi teks yang diketahui |
 | `scan-l-i.cjs` | Korupsi `l`↔`i` dan `a`↔`u` secara presisi |
 | `audit-theme.cjs` | Kontras & latar terang di kedua tema |
-| `audit-all-pages.cjs` | 30 halaman × 3 ukuran layar |
+| `audit-all-pages.cjs` | 30 halaman × 4 ukuran layar |
 | `audit-a11y.cjs` | axe-core WCAG 2.1 AA, kedua tema |
 | `prove-upload.cjs` | Unggah dokumen end-to-end |
 | `prove-edit-transaction.cjs` | Sunting transaksi end-to-end |
@@ -701,7 +701,7 @@ sama akan muncul lagi.
 ## 6. Hasil audit akhir
 
 ```
-Semua halaman termuat bersih di 3 ukuran layar.
+Semua halaman termuat bersih di 4 ukuran layar.
 
 Mode light — 16 halaman: 0 temuan
 Mode dark  — 16 halaman: 0 temuan
