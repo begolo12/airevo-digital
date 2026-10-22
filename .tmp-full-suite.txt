@@ -1,0 +1,141 @@
+$ vitest run
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 C:/Users/User/Documents/porto/SaaS-Irvan
+
+ ❯ tests/auth-flow.test.ts (43 tests | 8 failed) 10251ms
+   ❯ selectProfileAction (7)
+     × PIN benar membuka profil, menaikkan sesi ke active, dan mengalihkan 180ms
+     × PIN salah menyebut sisa percobaan 156ms
+     × PIN salah berulang mengunci profil itu saja 139ms
+     × percobaan PIN ke-6 ditolak walau PIN-nya benar 147ms
+     × PIN benar mereset hitungan percobaan profil 141ms
+     × profil milik akun lain tidak bisa dibuka walau PIN-nya benar 137ms
+   ❯ TEMUAN: celah yang masih terbuka (2)
+     × PIN salah dari akun lain bisa mengunci profil orang lain 131ms
+     × parameter next bisa mengalihkan ke situs luar (open redirect) 137ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/auth-flow.test.ts > selectProfileAction > PIN benar membuka profil, menaikkan sesi ke active, dan mengalihkan
+AssertionError: expected 'ReferenceError: profilesForAccount is…' to contain 'NEXT_REDIRECT'
+
+Expected: "NEXT_REDIRECT"
+Received: "ReferenceError: profilesForAccount is not defined"
+
+ ❯ tests/auth-flow.test.ts:496:27
+    494|     );
+    495|
+    496|     expect(String(error)).toContain("NEXT_REDIRECT");
+       |                           ^
+    497|     expect(harness.redirects.at(-1)).toBe("/keluarga");
+    498|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/auth-flow.test.ts > selectProfileAction > PIN salah menyebut sisa percobaan
+ReferenceError: profilesForAccount is not defined
+ ❯ Module.selectProfileAction src/lib/data/actions.ts:223:17
+    221|    * berulang kali — penghuni sahnya lalu terkunci 10 menit. Itu DoS l…
+    222|    */
+    223|   const owned = profilesForAccount(session.userId).find(
+       |                 ^
+    224|     (item) => item.id === profileId,
+    225|   );
+ ❯ tests/auth-flow.test.ts:511:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  tests/auth-flow.test.ts > selectProfileAction > PIN salah berulang mengunci profil itu saja
+ReferenceError: profilesForAccount is not defined
+ ❯ Module.selectProfileAction src/lib/data/actions.ts:223:17
+    221|    * berulang kali — penghuni sahnya lalu terkunci 10 menit. Itu DoS l…
+    222|    */
+    223|   const owned = profilesForAccount(session.userId).find(
+       |                 ^
+    224|     (item) => item.id === profileId,
+    225|   );
+ ❯ tests/auth-flow.test.ts:524:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  tests/auth-flow.test.ts > selectProfileAction > percobaan PIN ke-6 ditolak walau PIN-nya benar
+ReferenceError: profilesForAccount is not defined
+ ❯ Module.selectProfileAction src/lib/data/actions.ts:223:17
+    221|    * berulang kali — penghuni sahnya lalu terkunci 10 menit. Itu DoS l…
+    222|    */
+    223|   const owned = profilesForAccount(session.userId).find(
+       |                 ^
+    224|     (item) => item.id === profileId,
+    225|   );
+ ❯ tests/auth-flow.test.ts:546:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  tests/auth-flow.test.ts > selectProfileAction > PIN benar mereset hitungan percobaan profil
+ReferenceError: profilesForAccount is not defined
+ ❯ Module.selectProfileAction src/lib/data/actions.ts:223:17
+    221|    * berulang kali — penghuni sahnya lalu terkunci 10 menit. Itu DoS l…
+    222|    */
+    223|   const owned = profilesForAccount(session.userId).find(
+       |                 ^
+    224|     (item) => item.id === profileId,
+    225|   );
+ ❯ tests/auth-flow.test.ts:564:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  tests/auth-flow.test.ts > selectProfileAction > profil milik akun lain tidak bisa dibuka walau PIN-nya benar
+ReferenceError: profilesForAccount is not defined
+ ❯ Module.selectProfileAction src/lib/data/actions.ts:223:17
+    221|    * berulang kali — penghuni sahnya lalu terkunci 10 menit. Itu DoS l…
+    222|    */
+    223|   const owned = profilesForAccount(session.userId).find(
+       |                 ^
+    224|     (item) => item.id === profileId,
+    225|   );
+ ❯ tests/auth-flow.test.ts:596:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  tests/auth-flow.test.ts > TEMUAN: celah yang masih terbuka > PIN salah dari akun lain bisa mengunci profil orang lain
+ReferenceError: profilesForAccount is not defined
+ ❯ Module.selectProfileAction src/lib/data/actions.ts:223:17
+    221|    * berulang kali — penghuni sahnya lalu terkunci 10 menit. Itu DoS l…
+    222|    */
+    223|   const owned = profilesForAccount(session.userId).find(
+       |                 ^
+    224|     (item) => item.id === profileId,
+    225|   );
+ ❯ tests/auth-flow.test.ts:718:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  tests/auth-flow.test.ts > TEMUAN: celah yang masih terbuka > parameter next bisa mengalihkan ke situs luar (open redirect)
+AssertionError: expected undefined to be '//evil.example' // Object.is equality
+
+- Expected:
+"//evil.example"
+
++ Received:
+undefined
+
+ ❯ tests/auth-flow.test.ts:750:38
+    748|     );
+    749|
+    750|     expect(harness.redirects.at(-1)).toBe("//evil.example");
+       |                                      ^
+    751|   });
+    752| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  1 failed | 17 passed (18)
+      Tests  8 failed | 348 passed | 23 expected fail (379)
+   Start at  01:21:46
+   Duration  13.68s (tests 91%, import 5%, environment 2%, transform 1%)
+
+[ELIFECYCLE] Test failed. See above for more details.

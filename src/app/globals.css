@@ -1,0 +1,701 @@
+@import "tailwindcss";
+
+/*
+ * Airevo Digital — design tokens
+ * Arah desain aplikasi Keluarga: "Meja Dapur" (B).
+ * Papan perintah di pintu kulkas: hangat, praktis, kartu-kartu seperti kertas tempel.
+ */
+
+@theme {
+  /* Kertas & tinta */
+  --color-paper: #fbf6ec;
+  --color-paper-deep: #f3ead9;
+  --color-card: #fffdf8;
+  --color-ink: #23201d;
+  --color-ink-soft: #4a443d;
+  --color-muted: #6b6254;
+  --color-line: #e6dbc7;
+  --color-line-strong: #d6c7ac;
+
+  /* Warna meja dapur */
+  --color-butter: #f6e7b4;
+  --color-butter-deep: #ecd58a;
+  --color-mint: #bfe3d0;
+  --color-mint-deep: #8fcfae;
+  --color-tomato: #e2563c;
+  --color-tomato-deep: #c2402a;
+  --color-tomato-ink: #8a2718;
+  --color-sky: #bfd7ea;
+  --color-sky-deep: #93bcd9;
+  --color-plum: #cbb6d9;
+
+  /* Semantik */
+  --color-positive: #266b4e;
+  --color-warning: #8a5210;
+  --color-danger: #a83520;
+
+  /*
+   * Permukaan penekanan (kartu utama, tombol utama).
+   *
+   * Tidak memakai `bg-ink`: di mode gelap `--color-ink` menjadi terang sehingga
+   * kartu penekanan berubah jadi putih menyilaukan. Nilai ini ditimpa di
+   * `.dark` supaya utilitas `bg-emphasis` ikut menyesuaikan.
+   */
+  --color-emphasis: #23201d;
+  --color-on-emphasis: #fbf6ec;
+  --color-emphasis-hover: #3a342d;
+
+  /*
+   * Tomat untuk TEKS, bukan latar.
+   *
+   * `--color-tomato-deep` dipakai sebagai latar tombol berteks putih, sehingga
+   * tidak bisa dicerahkan. Di mode gelap, `tomato-deep` (#d95b42) hanya
+   * mencapai kontras 4.96:1 di latar paper — lulus, tetapi terlalu mepet untuk
+   * teks tangan berukuran besar. Token ini memberi nilai berbeda per tema.
+   */
+  --color-tomato-text: #c2402a;
+
+  /* Teks nominal di atas sel heatmap — lebih gelap agar kontras cukup. */
+  --color-heat-text: #8a2718;
+
+  /*
+   * Aksen di atas permukaan penekanan (selalu gelap di kedua mode).
+   *
+   * `--color-butter` menjadi gelap di mode gelap, sehingga teks butter di atas
+   * `bg-emphasis` kehilangan kontras. Token ini tetap terang di kedua mode
+   * karena latarnya memang selalu gelap.
+   */
+  --color-butter-on-emphasis: #f6e7b4;
+
+  /*
+   * Tirai latar untuk dialog dan menu.
+   *
+   * Tidak memakai `bg-ink/40`: di mode gelap `--color-ink` menjadi terang,
+   * sehingga tirai berubah jadi kabut putih — kebalikan dari yang dibutuhkan.
+   */
+  --color-scrim: #1a1714;
+
+  /* Tipografi */
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-hand: var(--font-caveat), ui-serif, cursive;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  /*
+   * Skala tipografi.
+   *
+   * Sebelumnya ukuran teks ditulis ad-hoc di 200 tempat (`text-[0.6875rem]`,
+   * `text-[11px]`, dst.), sehingga hierarki antar halaman tidak konsisten dan
+   * setiap perubahan harus disentuh satu per satu. Sembilan langkah di bawah
+   * adalah satu-satunya ukuran yang dipakai aplikasi.
+   *
+   * `2xs`–`base` untuk UI padat, `md`–`3xl` untuk judul dan angka besar.
+   */
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 1.35;
+  --text-xs: 0.6875rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.75rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 0.8125rem;
+  --text-base--line-height: 1.5;
+  --text-md: 0.9375rem;
+  --text-md--line-height: 1.5;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.4;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 1.2;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 1.1;
+
+  /* Bentuk */
+  --radius-note: 14px;
+  --radius-pill: 999px;
+
+  --shadow-note:
+    0 1px 2px rgba(35, 32, 29, 0.06), 0 10px 24px -12px rgba(35, 32, 29, 0.18);
+  --shadow-lift:
+    0 2px 4px rgba(35, 32, 29, 0.08), 0 22px 44px -20px rgba(35, 32, 29, 0.28);
+
+  /*
+   * Kurva gerak.
+   *
+   * Empat kurva, dipakai konsisten. Sebelumnya setiap animasi menulis
+   * cubic-bezier sendiri sehingga terasa tidak satu tangan.
+   */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-quart: cubic-bezier(0.5, 0, 0.75, 0);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Durasi */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 240ms;
+  --duration-slower: 400ms;
+}
+
+/*
+ * Token semantik.
+ *
+ * Komponen memakai nama peran (`--surface-raised`, `--text-secondary`), bukan
+ * warna mentah (`--color-card`, `--color-muted`). Ini yang membuat dark mode
+ * mungkin tanpa menyentuh setiap komponen: cukup tukar nilai di `.dark`.
+ *
+ * Palet mentah tetap tersedia untuk kasus dekoratif (kartu berwarna, badge).
+ */
+:root {
+  --surface-page: var(--color-paper);
+  --surface-raised: var(--color-card);
+  --surface-sunken: var(--color-paper-deep);
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-ink-soft);
+  --text-tertiary: var(--color-muted);
+  --border-subtle: var(--color-line);
+  --border-strong: var(--color-line-strong);
+  --accent-primary: var(--color-tomato);
+  --accent-positive: var(--color-positive);
+  --accent-warning: var(--color-warning);
+  --accent-danger: var(--color-danger);
+
+  /*
+   * Permukaan penekanan (kartu utama, tombol utama).
+   *
+   * Tidak memakai `bg-ink`: di mode gelap `--color-ink` menjadi terang,
+   * sehingga kartu penekanan berubah jadi putih menyilaukan — persis yang
+   * dihindari mode gelap. Token ini tetap gelap di kedua mode.
+   */
+  --surface-emphasis: #23201d;
+  --text-on-emphasis: #fbf6ec;
+
+  /* Kepadatan: nyaman (default) atau padat. Diatur lewat atribut di <html>. */
+  --row-height: 2.75rem;
+  --card-padding: 1.25rem;
+}
+
+/*
+ * Mode gelap — "Malam di Dapur".
+ *
+ * Bukan inversi. Meja dapur malam: lampu hangat di atas kertas gelap
+ * kecoklatan, bukan hitam pekat. Tombol dan aksen dibuat lebih terang supaya
+ * kontras tetap lulus WCAG AA di latar gelap.
+ */
+.dark {
+  --color-paper: #16130f;
+  --color-paper-deep: #1e1a15;
+  --color-card: #221d18;
+  --color-ink: #f4eee2;
+  --color-ink-soft: #d3c9b8;
+  --color-muted: #a1968a;
+  --color-line: #332c24;
+  --color-line-strong: #473d32;
+
+  --color-butter: #4a3d1f;
+  --color-butter-deep: #6b5a2e;
+  --color-mint: #234437;
+  --color-mint-deep: #3f7d62;
+  --color-tomato: #f07a63;
+  --color-tomato-deep: #d95b42;
+  --color-tomato-ink: #ffb3a3;
+  --color-sky: #23394b;
+  --color-sky-deep: #3d6a8a;
+  --color-plum: #3d3048;
+
+  --color-positive: #6ec89b;
+  --color-warning: #e0a75a;
+  --color-danger: #f08a72;
+
+  /* Penekanan di mode gelap: lebih terang dari latar, tetapi tetap hangat. */
+  --color-emphasis: #322a22;
+  --color-on-emphasis: #f7f1e6;
+  --color-emphasis-hover: #423830;
+
+  /* Di latar gelap, teks tomat harus lebih terang (kontras 6.76:1). */
+  --color-tomato-text: #f07a63;
+
+  /* Di latar gelap, teks nominal heatmap harus terang. */
+  --color-heat-text: #ffb3a3;
+
+  --surface-page: var(--color-paper);
+  --surface-raised: var(--color-card);
+  --surface-sunken: var(--color-paper-deep);
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-ink-soft);
+  --text-tertiary: var(--color-muted);
+  --border-subtle: var(--color-line);
+  --border-strong: var(--color-line-strong);
+  --accent-primary: var(--color-tomato);
+  --accent-positive: var(--color-positive);
+  --accent-warning: var(--color-warning);
+  --accent-danger: var(--color-danger);
+
+  /*
+   * Penekanan di mode gelap: lebih terang dari latar agar menonjol, tetapi
+   * tetap hangat dan redup — bukan putih.
+   */
+  --surface-emphasis: #322a22;
+  --text-on-emphasis: #f7f1e6;
+
+  /* Bayangan di latar gelap harus lebih dalam agar tetap terbaca. */
+  --shadow-note:
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 24px -12px rgba(0, 0, 0, 0.6);
+  --shadow-lift:
+    0 2px 4px rgba(0, 0, 0, 0.45), 0 22px 44px -20px rgba(0, 0, 0, 0.7);
+}
+
+/* Kepadatan padat: baris lebih pendek, padding lebih tipis. */
+[data-density="compact"] {
+  --row-height: 2.125rem;
+  --card-padding: 0.875rem;
+}
+
+/*
+ * Kepadatan padat pada elemen nyata.
+ *
+ * Token `--row-height` saja tidak cukup: baris tabel dan daftar memakai
+ * utilitas Tailwind langsung (`py-3`, `py-4`). Aturan di bawah memadatkannya
+ * tanpa menyentuh puluhan berkas satu per satu, dan tanpa mengubah tampilan
+ * "nyaman" sedikit pun.
+ */
+[data-density="compact"] table td,
+[data-density="compact"] table th {
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+}
+
+[data-density="compact"] ul > li,
+[data-density="compact"] ol > li {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Judul halaman sedikit lebih rapat agar lebih banyak isi terlihat. */
+[data-density="compact"] h1 {
+  line-height: 1.05;
+}
+
+@layer base {
+  * {
+    border-color: var(--border-subtle);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--surface-page);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    background-image:
+      radial-gradient(
+        circle at 12% 8%,
+        rgba(246, 231, 180, 0.55),
+        transparent 42%
+      ),
+      radial-gradient(
+        circle at 88% 0%,
+        rgba(191, 227, 208, 0.45),
+        transparent 38%
+      );
+    background-attachment: fixed;
+  }
+
+  /*
+   * Cahaya lampu di mode gelap: dua titik hangat yang jauh lebih redup.
+   * Tanpa ini, latar gelap terasa datar dan mati.
+   */
+  html.dark body {
+    background-image:
+      radial-gradient(
+        circle at 12% 8%,
+        rgba(246, 231, 180, 0.07),
+        transparent 42%
+      ),
+      radial-gradient(
+        circle at 88% 0%,
+        rgba(191, 227, 208, 0.05),
+        transparent 38%
+      );
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: var(--color-butter);
+    color: var(--color-ink);
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* Scrollbar mengikuti tema, bukan selalu terang. */
+  html {
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}
+
+@layer components {
+  /* Kartu seperti kertas tempel di papan */
+  .note {
+    background-color: var(--surface-raised);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-note);
+    box-shadow: var(--shadow-note);
+  }
+
+  .note-tilt-left {
+    transform: rotate(-0.5deg);
+  }
+
+  .note-tilt-right {
+    transform: rotate(0.4deg);
+  }
+
+  /* Pita perekat di atas kartu */
+  .tape::before {
+    content: "";
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    width: 74px;
+    height: 18px;
+    transform: translateX(-50%) rotate(-1.5deg);
+    background: color-mix(in oklab, var(--color-butter) 85%, white);
+    border: 1px solid color-mix(in oklab, var(--color-butter-deep) 60%, white);
+    border-radius: 3px;
+    opacity: 0.95;
+  }
+
+  .grid-paper {
+    background-image:
+      linear-gradient(to right, rgba(214, 199, 172, 0.35) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(214, 199, 172, 0.35) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .hand {
+    font-family: var(--font-hand);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .label-eyebrow {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  /* Permukaan melayang: dialog, menu, palette */
+  .surface {
+    background-color: var(--surface-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    box-shadow: var(--shadow-lift);
+  }
+
+  /* Baris menu yang bisa dipilih */
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    width: 100%;
+    padding: 0.4375rem 0.625rem;
+    border-radius: 8px;
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: left;
+    transition:
+      background-color var(--duration-fast) var(--ease-out-quart),
+      color var(--duration-fast) var(--ease-out-quart);
+  }
+
+  .menu-item:hover,
+  .menu-item[data-highlighted="true"] {
+    background-color: var(--surface-sunken);
+    color: var(--text-primary);
+  }
+
+  .menu-item[data-danger="true"] {
+    color: var(--accent-danger);
+  }
+
+  .menu-item[data-danger="true"]:hover,
+  .menu-item[data-danger="true"][data-highlighted="true"] {
+    background-color: color-mix(in oklab, var(--accent-danger) 12%, transparent);
+    color: var(--color-tomato-ink);
+  }
+
+  .menu-item:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* Baris tabel yang bisa diklik-kanan */
+  .row-interactive {
+    transition: background-color var(--duration-fast) var(--ease-out-quart);
+  }
+
+  .row-interactive:hover {
+    background-color: color-mix(in oklab, var(--surface-sunken) 55%, transparent);
+  }
+
+  /*
+   * Sorot baris yang baru berubah.
+   *
+   * Memberi tahu "ini yang berubah" tanpa perlu toast. Memudar sendiri supaya
+   * tidak menetap sebagai kebisingan visual.
+   */
+  .row-flash {
+    animation: row-flash 1.5s var(--ease-out-quart);
+  }
+
+  /*
+   * Scrollbar tipis untuk panel navigasi.
+   *
+   * Scrollbar bawaan Windows terlalu lebar dan terang untuk sidebar hangat ini,
+   * sehingga terlihat seperti elemen asing. Di sini dibuat hampir tak terlihat
+   * sampai panelnya di-hover.
+   */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--border-strong) 60%, transparent)
+      transparent;
+  }
+
+  .scroll-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scroll-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklab, var(--border-strong) 55%, transparent);
+    border-radius: 999px;
+  }
+
+  .scroll-thin:hover::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklab, var(--border-strong) 90%, transparent);
+  }
+
+  /*
+   * Tekstur kertas.
+   *
+   * Butiran halus di atas latar agar tidak terasa datar seperti layar kosong.
+   * Memakai gradien titik, bukan gambar — 0 byte tambahan.
+   */
+  .paper-grain::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      color-mix(in oklab, var(--border-strong) 28%, transparent) 1px,
+      transparent 0
+    );
+    background-size: 4px 4px;
+  }
+}
+
+@layer utilities {
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Baris baru berubah: latar butter memudar. */
+  @keyframes row-flash {
+    0% {
+      background-color: color-mix(in oklab, var(--color-butter) 70%, transparent);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  /*
+   * Struk tercetak.
+   *
+   * Saat transaksi tersimpan, dialog menyusut dan meluncur ke bawah seperti
+   * struk keluar printer. Menjelaskan "data masuk ke daftar", bukan sekadar
+   * hiasan.
+   */
+  @keyframes receipt-out {
+    0% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    55% {
+      opacity: 0.9;
+      transform: translateY(14px) scale(0.97, 0.9);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(64px) scale(0.94, 0.62);
+    }
+  }
+
+  .animate-receipt {
+    animation: receipt-out 340ms var(--ease-in-quart) forwards;
+  }
+
+  /* Angka bergulir: nilai lama naik keluar, nilai baru masuk dari bawah. */
+  @keyframes digit-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.45em);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-digit {
+    animation: digit-in 260ms var(--ease-out-quart);
+  }
+
+  /* Cincin progres mengisi dari 0. */
+  @keyframes ring-fill {
+    from {
+      stroke-dashoffset: var(--ring-circumference);
+    }
+  }
+
+  .animate-ring {
+    animation: ring-fill 700ms var(--ease-out-quart) forwards;
+  }
+
+  /* Konfeti tujuan tercapai — sekali saja, warna meja dapur. */
+  @keyframes confetti-fall {
+    0% {
+      opacity: 1;
+      transform: translate3d(0, -8px, 0) rotate(0deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(var(--confetti-x, 0), 92px, 0) rotate(320deg);
+    }
+  }
+
+  .animate-confetti {
+    animation: confetti-fall 1100ms var(--ease-in-quart) forwards;
+  }
+
+  .animate-rise {
+    animation: rise-in var(--duration-base) var(--ease-out-quart);
+  }
+
+  .animate-fade {
+    animation: fade-in var(--duration-fast) var(--ease-out-quart);
+  }
+
+  .animate-toast {
+    animation: toast-in 220ms var(--ease-out-quart);
+  }
+
+  /* Kerangka muat */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--surface-sunken);
+    border-radius: 8px;
+  }
+
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--surface-raised) 80%, transparent),
+      transparent
+    );
+    animation: shimmer 1.6s infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .note-tilt-left,
+  .note-tilt-right {
+    transform: none;
+  }
+}

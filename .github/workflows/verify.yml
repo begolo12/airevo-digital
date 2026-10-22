@@ -1,0 +1,98 @@
+name: Verifikasi
+
+# Dijalankan pada setiap push dan pull request.
+#
+# Tanpa CI, semua pemeriksaan dijalankan manual — dan yang manual akan
+# terlewat. Bug teks dan kelas CSS yang ditemukan di sesi ini lolos justru
+# karena tidak ada yang menjalankan pemeriksaan secara otomatis.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+# Batalkan run lama bila ada push baru ke branch yang sama.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Pasang pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Pasang Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Pasang dependensi
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
+
+      - name: Lint
+        run: pnpm lint
+
+      # Test berjalan tanpa database: `vitest.config.ts` mengosongkan seluruh
+      # variabel Neon, jadi tidak ada risiko menyentuh data sungguhan.
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  static-audit:
+    name: Audit statis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Pasang pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Pasang Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Pasang dependensi
+        run: pnpm install --frozen-lockfile
+
+      # Audit ini menangkap hal yang tidak terlihat oleh tsc/lint/test:
+      # tautan 404, kelas CSS yang tidak ada, korupsi teks, dan action yang
+      # lupa memeriksa sesi.
+      - name: Tautan internal
+        run: node scripts/validate-links.cjs
+
+      - name: Korupsi teks
+        run: node scripts/scan-text-corruption.cjs
+
+      - name: Otorisasi server action
+        run: node scripts/check-authorization.cjs
+
+      # `validate-classes.cjs` butuh CSS hasil build.
+      - name: Build untuk audit kelas
+        run: pnpm build
+
+      - name: Kelas CSS
+        run: node scripts/validate-classes.cjs

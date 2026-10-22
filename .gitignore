@@ -1,0 +1,65 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Testing
+/coverage
+/playwright-report
+/test-results
+/blob-report
+
+# Next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+
+# Production
+/dist
+
+# Misc
+.DS_Store
+*.pem
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+!.env.example
+
+# Vercel
+.vercel
+
+# Drizzle: migrasi HARUS di-commit, hanya dump lokal yang diabaikan
+*.sql.gz
+
+# Sentry
+.sentryclirc
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Screenshot verifikasi lokal
+/shots
+
+
+# Data lokal aplikasi (bukan untuk di-commit)
+/.data
+
+.neon
