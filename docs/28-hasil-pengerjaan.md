@@ -21,29 +21,30 @@ direncanakan. Setiap klaim disertai angka atau perintah yang bisa diulang.
 | 1.5 Mode kepadatan | **Selesai** | token `--row-height`, `--card-padding` |
 | 1.6 Aksesibilitas | **Selesai** | axe-core WCAG 2.1 AA: 0 pelanggaran |
 | 1.7 Sistem gerak | **Selesai** | 4 kurva, 4 durasi |
-| 2.x Detail interaksi | **Selesai** | angka bergulir, cincin, konfeti, struk, sparkline, heatmap, pintasan |
+| 2.1 Angka bergulir, cincin, konfeti | **Selesai** | `AnimatedNumber`, `ProgressRing`, `Confetti` |
+| 2.2 Sparkline | **Selesai** | tren saldo di kartu ringkasan |
+| 2.3 Struk saat transaksi | **Selesai** | animasi `receipt-out` |
+| 2.4 Heatmap kalender | **Selesai** | intensitas pengeluaran per hari |
+| 2.5 Pintasan keyboard | **Selesai** | g+huruf, /, ?, ⌘K |
 | 3.1 Unggah dokumen | **Selesai** | terbukti end-to-end |
 | 3.2 Edit transaksi | **Selesai** | terbukti end-to-end + 8 test |
 | 3.3 Urungkan (undo) | **Selesai** | toast 6 detik + 5 test |
-| 3.6 Ekspor CSV | **Selesai** | 15 test + terbukti lewat aplikasi |
-| 2.4 Heatmap kalender | **Selesai** | intensitas pengeluaran per hari |
-| 2.5 Pintasan keyboard | **Selesai** | g+huruf, /, ?, ⌘K |
-| 3.9 Simulator pelunasan utang | **Selesai** | 13 test + UI di halaman Utang |
-| 3.8 Grafik tren | **Selesai** | batang kini tampil (bug tinggi persen) |
-| 4.4 CI | **Selesai** | `.github/workflows/verify.yml` + repo git aktif |
-| 3.4 Ruang bersama | **Selesai** | buat/gabung/keluar + 16 test |
-| 3.5 Transaksi berulang | **Selesai** | 32 test + terbukti end-to-end |
-| 3.6 Lampiran foto struk | **Selesai** | 9 test + terbukti end-to-end |
-| 3.7 Pisah tagihan | **Selesai** | 25 test + terbukti end-to-end |
-| 3.8 Lupa PIN | **Selesai** | 8 test + terbukti end-to-end |
-| 3.9 Proyeksi arus kas | **Selesai** | 27 test + tampil di Laporan |
-| E2 `workspaceId` opsional | **Terjaga** | 17 entitas, invariant test |
-| E3 Dokumentasi auth ganda | **Selesai** | lihat [30](30-dua-jalur-auth.md) |
-| 4.3 Uji aksesibilitas | **Selesai** | 46 pemeriksaan, 0 pelanggaran |
+| 3.4 Ekspor CSV | **Selesai** | 15 test + terbukti lewat aplikasi |
+| 3.5 Simulator pelunasan utang | **Selesai** | 13 test + UI di halaman Utang |
+| 3.6 Grafik tren | **Selesai** | batang kini tampil (bug tinggi persen) |
+| 3.7 Ruang bersama | **Selesai** | buat/gabung/keluar + 16 test |
+| 3.8 Transaksi berulang | **Selesai** | 32 test + terbukti end-to-end |
+| 3.9 Lampiran foto struk | **Selesai** | 9 test + terbukti end-to-end |
+| 3.10 Pisah tagihan | **Selesai** | 25 test + terbukti end-to-end |
+| 3.11 Lupa PIN | **Selesai** | 8 test + terbukti end-to-end |
+| 3.12 Proyeksi arus kas | **Selesai** | 27 test + tampil di Laporan |
 | 4.1 Rate limit persisten | **Selesai** | Postgres; lihat [31](31-pembatas-laju-persisten.md) |
 | 4.2 Uji konkurensi | **Selesai** | pola aman; lihat [29](29-uji-konkurensi.md) |
-| 4.5 Audit otorisasi | **Selesai** | 52 action diperiksa; 6 celah ditutup |
-
+| 4.3 Uji aksesibilitas | **Selesai** | 46 pemeriksaan, 0 pelanggaran |
+| 4.4 CI | **Selesai** | `.github/workflows/verify.yml` + repo git aktif |
+| 4.5 Audit otorisasi | **Selesai** | 63 action diperiksa; 6 celah ditutup |
+| E2 `workspaceId` opsional | **Terjaga** | 17 entitas, invariant test |
+| E3 Dokumentasi auth ganda | **Selesai** | lihat [30](30-dua-jalur-auth.md) |
 ---
 
 ## 2. Angka sebelum dan sesudah
@@ -234,7 +235,18 @@ dibuatnya tidak masuk hitungan saldo mana pun.
 Dua lapis, bukan satu, karena lapis pertama bergantung pada data yang rapi;
 lapis kedua tetap bekerja meski data dari versi lama tidak rapi.
 
-### 3.12 Bug dark mode
+### 3.12 Kontras teks proyeksi
+
+Teks nominal pemasukan di proyeksi memakai `text-mint-deep` (#3f7d62) — hanya
+3.1:1 di latar gelap, di bawah ambang WCAG AA 4.5:1.
+
+**Pelajaran:** memilih warna dari palet tanpa memeriksa kontrasnya mudah
+terlewat, karena di mode terang warnanya terlihat baik. Yang menangkapnya
+adalah audit aksesibilitas otomatis — bukan pemeriksaan manual.
+
+Sekarang memakai `text-positive` yang punya nilai terpisah untuk kedua mode.
+
+### 3.13 Bug dark mode
 
 | Bug | Akibat |
 | --- | --- |
@@ -714,14 +726,49 @@ build  : ✓ Compiled successfully
 
 ---
 
+## 6b. Putaran terakhir — fitur baru & bug yang ditemukan
+
+| Fitur | Test | Bukti |
+| --- | --- | --- |
+| Transaksi berulang otomatis | 32 | banner dashboard → transaksi → idempoten |
+| Lampiran foto struk | 9 | unggah → bucket → unduh |
+| Pisah tagihan antar anggota | 25 | Rp1.000.001 → 500.001 + 500.000 |
+| Lupa PIN | 8 | kata sandi salah ditolak, benar diterima |
+| Proyeksi arus kas 6 bulan | 27 | tampil di Laporan |
+| Rate limit persisten | 8 | blokir bertahan setelah restart |
+
+**Bug yang ditemukan saat mengerjakan fitur-fitur itu** — semuanya tidak
+terdeteksi `tsc`, `lint`, maupun test yang sudah ada:
+
+| Bug | Dampak |
+| --- | --- |
+| Grafik tren kosong | Batang tidak tampil (tinggi persen tanpa acuan) |
+| Rujukan aturan berulang tidak diperiksa | Akun/kategori terarsip masih dipakai |
+| Aturan aktif kembali setelah akun diarsipkan | Transaksi tanpa akun sah |
+| Proyeksi menampilkan pemasukan Rp0 | Menyimpulkan uang akan habis |
+| Kontras `text-mint-deep` 3.1:1 | Di bawah ambang WCAG AA |
+| `formData.get` untuk kotak centang | Pembagian hanya untuk satu anggota |
+| Test flaky `order-code` (0.16%) | Kegagalan acak membuat CI tidak dipercaya |
+
+**Pelajaran yang berulang:** menambah koleksi atau fitur baru berarti memeriksa
+**semua** tempat yang sudah ada dan mungkin merujuknya — bukan hanya menulis
+kode baru. Empat dari tujuh bug di atas muncul dari kelalaian itu.
+
 ## 7. Yang belum dikerjakan
 
-| Hal | Alasan |
+Empat hal tersisa — **semuanya butuh akun atau keputusan Anda**, bukan
+pekerjaan kode yang tertunda:
+
+| Hal | Yang saya butuhkan dari Anda |
 | --- | --- |
-| **Deploy Vercel + domain** | Butuh akun Vercel Anda |
-| **Pembayaran Xendit/Midtrans** | Butuh keputusan Anda |
-| Sentry (monitoring error) | Butuh akun Sentry |
-| Uji restore Neon PITR | Butuh akses konsol Neon |
+| **Deploy Vercel + domain** | Akun Vercel; `SESSION_SECRET` sudah siap |
+| **Pembayaran Xendit/Midtrans** | Pilihan gateway + akun merchant |
+| Sentry (monitoring error) | Akun Sentry (gratis untuk skala ini) |
+| Uji restore Neon PITR | Akses konsol Neon untuk mencoba restore |
+
+Fitur yang sengaja **tidak** dikerjakan karena butuh layanan berbayar atau data
+nyata: daftar belanja realtime (Neon Realtime), pencarian bahasa alami (AI
+Gateway, biaya per query), deteksi anomali (butuh data nyata untuk dilatih).
 
 ---
 
