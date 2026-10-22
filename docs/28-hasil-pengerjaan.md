@@ -40,7 +40,7 @@ direncanakan. Setiap klaim disertai angka atau perintah yang bisa diulang.
 | 3.12 Proyeksi arus kas | **Selesai** | 27 test + tampil di Laporan |
 | 5.1 Aplikasi Android | **Selesai** | Flutter + REST API; lihat [32](32-aplikasi-android.md) |
 | 3.13 Korupsi teks halaman Tugas | **Selesai** | 7 kata + pemindai diperkuat |
-| 6.1 Audit e2e semua fitur | **Selesai** | 33 pemeriksaan, 0 gagal |
+| 6.1 Audit e2e semua fitur | **Selesai** | 33 pemeriksaan UI + 21 skrip bukti |
 | 4.1 Rate limit persisten | **Selesai** | Postgres; lihat [31](31-pembatas-laju-persisten.md) |
 | 4.2 Uji konkurensi | **Selesai** | pola aman; lihat [29](29-uji-konkurensi.md) |
 | 4.3 Uji aksesibilitas | **Selesai** | 46 pemeriksaan, 0 pelanggaran |

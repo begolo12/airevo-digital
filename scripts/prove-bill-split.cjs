@@ -44,7 +44,42 @@ async function login(page) {
 
   // Isi formulir tagihan.
   await page.fill('input[name="name"]', MARKER);
-  await page.fill('input[name="amount"]', "1000001");
+  /*
+   * Nominal harus kelipatan `step` pada input (1000).
+   *
+   * Percobaan pertama memakai 1.000.001 — bukan kelipatan 1000, sehingga
+   * validasi HTML menolaknya sebelum sempat dikirim. Angka itu dipilih agar
+   * pembagiannya menyisakan satu rupiah, tetapi `step=1000` membuatnya tidak
+   * sah. Untuk menguji sisa pembulatan, gunakan nominal yang tetap kelipatan
+   * 1000 tetapi tidak habis dibagi jumlah anggota — 1.000.000 / 3.
+   */
+  await page.fill('input[name="amount"]', "1000000");
+
+  /*
+   * Kategori dan akun tidak wajib di HTML, tetapi memilihnya membuat tagihan
+   * lebih realistis — dan `nextDueDate` perlu diisi agar jatuh temponya masuk
+   * akal. Formulir memakai nilai bawaan bila dikosongkan, jadi ini opsional;
+   * ditambahkan supaya skrip mencerminkan cara pengguna mengisi.
+   */
+  /*
+   * Dibatasi ke form tagihan yang benar.
+   *
+   * Halaman ini punya beberapa `select[name="accountId"]` — satu per baris
+   * tagihan, untuk memilih akun pembayaran. Tanpa pembatasan, locator menunjuk
+   * ke yang pertama (baris tagihan lain) dan bukan field di formulir.
+   */
+  const billForm = page
+    .locator("form")
+    .filter({ has: page.locator('input[name="splitMembers"]') })
+    .first();
+
+  for (const name of ["categoryId", "accountId"]) {
+    const select = billForm.locator(`select[name="${name}"]`);
+    if (await select.count()) {
+      const options = await select.locator("option").count();
+      if (options > 1) await select.selectOption({ index: 1 });
+    }
+  }
 
   // Centang dua anggota.
   const checkboxes = page.locator('input[name="splitMembers"]');
@@ -61,7 +96,16 @@ async function login(page) {
   await checkboxes.nth(1).check();
   console.log("3. Dua anggota dicentang                  : ok");
 
-  await page.getByRole("button", { name: /Tambah tagihan|Simpan/ }).first().click();
+  /*
+   * Nama tombol harus persis.
+   *
+   * Pola `/Tambah tagihan|Simpan/` juga cocok dengan tombol "Simpan" lain di
+   * halaman — mis. tombol simpan pada formulir lain — sehingga klik bisa
+   * mengenai tombol yang salah dan formulir tidak pernah terkirim.
+   */
+  const saveBill = page.getByRole("button", { name: /^Tambah tagihan$/ });
+  await saveBill.scrollIntoViewIfNeeded();
+  await saveBill.click();
   await page.waitForTimeout(4000);
 
   await page.reload({ waitUntil: "networkidle" });
