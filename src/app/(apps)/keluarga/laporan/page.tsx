@@ -1,4 +1,5 @@
 import { PageHeader, Card, CardHeader, StatCard, ProgressBar } from "@/components/app/ui";
+import { cx } from "@/components/ui";
 import {
   assetTotals,
   budgetRows,
@@ -8,6 +9,7 @@ import {
   goalRows,
   monthSummary,
   netWorth,
+  cashFlowProjection,
 } from "@/lib/data/queries";
 import { requireViewer } from "@/lib/session";
 import {
@@ -31,6 +33,7 @@ export default async function LaporanPage() {
   const totals = budgetTotals(month, viewer);
   const goals = goalRows(viewer.workspaceId);
   const worth = netWorth(viewer.workspaceId);
+  const projection = cashFlowProjection(viewer.workspaceId, 6);
   const assets = assetTotals(viewer.workspaceId);
   const debts = debtTotals(viewer.workspaceId);
 
@@ -160,7 +163,7 @@ export default async function LaporanPage() {
                 <li key={row.id} className="flex items-center justify-between gap-3 px-5 py-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold">{row.category.name}</p>
-                    <p className="text-xs text-muted">
+      <p className="text-xs text-muted">
                       {formatIDR(row.used)} / {formatIDR(row.amount)}
                     </p>
                   </div>
@@ -226,13 +229,112 @@ export default async function LaporanPage() {
           </div>
         </div>
         <div className="border-t border-line px-5 py-3">
-          <p className="text-xs text-muted">
+      <p className="text-xs text-muted">
             Dana tujuan ({formatIDR(worth.goalsSaved)}) tidak ditambahkan terpisah karena
             sudah berada di dalam saldo akun.
           </p>
         </div>
       </Card>
 
+      {/* ------------------------ proyeksi arus kas ------------------------ */}
+      <Card>
+        <CardHeader
+          title="Proyeksi 6 bulan"
+          hint="Perkiraan saldo bila pola sekarang berlanjut"
+        />
+        <div className="px-5 py-4">
+          {projection.months.length === 0 ? (
+            <p className="text-xs text-muted">
+              Belum cukup data untuk membuat proyeksi.
+            </p>
+          ) : (
+            <>
+              {/*
+                Peringatan kekurangan saldo.
+
+                Menampilkan grafik saja tidak cukup — pengguna perlu tahu
+                KAPAN uangnya akan habis, bukan hanya bahwa grafiknya menurun.
+              */}
+              {projection.summary.hasShortfall ? (
+                <div className="mb-4 rounded-[10px] border border-tomato/40 bg-tomato/10 px-3 py-2">
+                  <p className="text-xs font-bold text-danger">
+                    Saldo diperkirakan minus pada{" "}
+                    {formatMonth(projection.summary.firstShortfallMonth!)}.
+                  </p>
+                  <p className="mt-0.5 text-2xs text-ink-soft">
+                    Pemasukan terjadwal tidak menutup pengeluaran. Tinjau
+                    pengeluaran rutin atau tambah pemasukan.
+                  </p>
+                </div>
+              ) : (
+                <p className="mb-4 rounded-[10px] border border-mint/40 bg-mint/10 px-3 py-2 text-xs text-ink-soft">
+                  Saldo diperkirakan tetap cukup sampai{" "}
+                  {formatMonth(projection.months.at(-1)!.month)}, dengan titik
+                  terendah {formatIDR(projection.summary.lowestBalance)}.
+                </p>
+              )}
+
+              <ul className="space-y-2">
+                {projection.months.map((month) => {
+                  const negative = month.runningBalance < 0;
+                  return (
+                    <li
+                      key={month.month}
+                      className="rounded-[10px] border border-line px-3 py-2"
+                    >
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <span className="text-sm font-semibold">
+                          {formatMonth(month.month)}
+                        </span>
+                        <span
+                          className={cx(
+                            "text-sm font-bold tnum",
+                            negative ? "text-danger" : "text-ink",
+                          )}
+                        >
+                          {formatIDR(month.runningBalance)}
+                        </span>
+                      </div>
+
+                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-2xs text-muted">
+                        <span>
+                          masuk{" "}
+                          <strong className="tnum text-mint-text">
+                            {formatIDR(month.income)}
+                          </strong>
+                        </span>
+                        <span>
+                          keluar{" "}
+                          <strong className="tnum text-heat-text">
+                            {formatIDR(month.totalExpense)}
+                          </strong>
+                        </span>
+                        <span>
+                          bersih{" "}
+                          <strong
+                            className={cx(
+                              "tnum",
+                              month.net < 0 ? "text-danger" : "text-ink-soft",
+                            )}
+                          >
+                            {formatIDR(month.net)}
+                          </strong>
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <p className="mt-3 text-2xs text-muted">
+                Dihitung dari transaksi berulang, tagihan aktif, dan rata-rata
+                pengeluaran harian tiga bulan terakhir. Pemasukan tak tetap
+                seperti bonus tidak diperhitungkan.
+              </p>
+            </>
+          )}
+        </div>
+      </Card>
       <p className="text-xs text-muted">
         Ekspor CSV dan cetak PDF masuk tahap berikutnya. Untuk sekarang, angka di halaman
         ini adalah sumber kebenaran.

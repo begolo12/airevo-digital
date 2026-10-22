@@ -30,12 +30,13 @@ direncanakan. Setiap klaim disertai angka atau perintah yang bisa diulang.
 | 2.5 Pintasan keyboard | **Selesai** | g+huruf, /, ?, ⌘K |
 | 3.9 Simulator pelunasan utang | **Selesai** | 13 test + UI di halaman Utang |
 | 3.8 Grafik tren | **Selesai** | batang kini tampil (bug tinggi persen) |
-| 4.4 CI | **Selesai** | `.github/workflows/verify.yml` |
+| 4.4 CI | **Selesai** | `.github/workflows/verify.yml` + repo git aktif |
 | 3.4 Ruang bersama | **Selesai** | buat/gabung/keluar + 16 test |
 | 3.5 Transaksi berulang | **Selesai** | 32 test + terbukti end-to-end |
 | 3.6 Lampiran foto struk | **Selesai** | 9 test + terbukti end-to-end |
 | 3.7 Pisah tagihan | **Selesai** | 25 test + terbukti end-to-end |
 | 3.8 Lupa PIN | **Selesai** | 8 test + terbukti end-to-end |
+| 3.9 Proyeksi arus kas | **Selesai** | 27 test + tampil di Laporan |
 | E2 `workspaceId` opsional | **Terjaga** | 17 entitas, invariant test |
 | E3 Dokumentasi auth ganda | **Selesai** | lihat [30](30-dua-jalur-auth.md) |
 | 4.3 Uji aksesibilitas | **Selesai** | 46 pemeriksaan, 0 pelanggaran |
@@ -54,7 +55,7 @@ direncanakan. Setiap klaim disertai angka atau perintah yang bisa diulang.
 | `bg-white` (menyilaukan di mode gelap) | 5 | **0** |
 | Korupsi teks & kelas | 22+ | **0** |
 | Tautan rusak | tidak diketahui | **0** (67 rute diperiksa) |
-| Test | 401 | **628** |
+| Test | 401 | **655** |
 | Halaman diaudit | sebagian | **30 halaman × 3 ukuran** |
 | Temuan kontras | tidak diukur | **0** di kedua tema |
 | Pelanggaran aksesibilitas | tidak diukur | **0** di 46 pemeriksaan |
@@ -205,7 +206,20 @@ sudah ada dan mungkin merujuknya. Yang menemukan ini adalah test yang sengaja
 mencoba menghapus entitas yang masih dirujuk — bukan test fitur baru itu
 sendiri.
 
-### 3.10 Bug dark mode
+### 3.10 Proyeksi menampilkan pemasukan nol
+
+Proyeksi arus kas hanya membaca aturan berulang. Pengguna yang mencatat gaji
+sebagai transaksi biasa — mayoritas — melihat pemasukan Rp0 di semua bulan,
+sehingga proyeksi menyimpulkan uangnya akan habis.
+
+**Perbaikannya:** bila tidak ada aturan pemasukan berulang, pakai rata-rata
+historis tiga bulan, dan beri tahu bahwa itu perkiraan.
+
+**Pelajaran:** fitur baru yang membaca data harus bertanya "bagaimana kalau
+datanya tidak dalam bentuk yang saya harapkan?" — bukan hanya "apakah datanya
+ada?".
+
+### 3.11 Bug dark mode
 
 | Bug | Akibat |
 | --- | --- |
@@ -538,7 +552,45 @@ PEMULIHAN PIN OK
 PIN demo **harus** dikembalikan dengan `node scripts/restore-demo-pin.cjs` —
 kalau tidak, dokumentasi dan skrip lain yang memakai 1234 akan gagal.
 
-### 4.14 Unggah dokumen
+### 4.14 Proyeksi arus kas
+
+Laporan menjawab "berapa yang sudah terjadi". Yang tidak terjawab: "apakah bulan
+depan saya cukup?" — pertanyaan yang sebenarnya paling menentukan keputusan.
+
+**Sumber angka** — hanya yang sudah diketahui, bukan tebakan:
+
+1. Transaksi berulang (gaji, langganan, cicilan)
+2. Tagihan aktif dengan jadwalnya
+3. Rata-rata pengeluaran harian dari tiga bulan terakhir yang sudah lewat
+
+**Yang sengaja tidak dilakukan:**
+
+- Tidak memakai model statistik. Dengan data sebulan-dua, itu hanya menambah
+  keyakinan palsu.
+- Tidak memprediksi pemasukan tak tetap (bonus, penjualan).
+- Tidak menampilkan satu angka tunggal tanpa asal-usulnya.
+
+### Bug yang ditemukan saat mengerjakannya
+
+Proyeksi pertama menampilkan **pemasukan Rp0** di semua bulan, padahal pengguna
+punya pemasukan nyata. Sebabnya: proyeksi hanya membaca aturan berulang,
+sedangkan pengguna mencatat gaji sebagai transaksi biasa.
+
+Angka nol yang menyesatkan lebih buruk daripada tidak ada proyeksi — pengguna
+akan menyimpulkan uangnya akan habis. Perbaikannya: bila tidak ada aturan
+pemasukan berulang, pakai rata-rata historis, dan **beri tahu** bahwa itu
+perkiraan.
+
+**Bukti (setelah perbaikan):**
+
+```
+Oktober 2026   masuk Rp14.500.000  keluar Rp2.710.000  bersih Rp11.790.000  → Rp93.210.000
+November 2026  masuk Rp14.500.000  keluar Rp3.745.000  bersih Rp10.755.000  → Rp103.965.000
+...
+Maret 2027     masuk Rp14.500.000  keluar Rp3.745.000  bersih Rp10.755.000  → Rp146.985.000
+```
+
+### 4.15 Unggah dokumen
 
 Rantai lengkap, terbukti bekerja:
 
@@ -641,7 +693,7 @@ Tautan rusak      : 0  (67 rute)
 
 tsc    : bersih
 lint   : bersih
-test   : 628 lulus (36 berkas)
+test   : 655 lulus (37 berkas)
 build  : ✓ Compiled successfully
 ```
 
@@ -653,7 +705,6 @@ build  : ✓ Compiled successfully
 | --- | --- |
 | **Deploy Vercel + domain** | Butuh akun Vercel Anda |
 | **Pembayaran Xendit/Midtrans** | Butuh keputusan Anda |
-| Repo git | CI sudah siap (`.github/workflows/verify.yml`), tinggal `git init` |
 | Sentry (monitoring error) | Butuh akun Sentry |
 | Uji restore Neon PITR | Butuh akses konsol Neon |
 

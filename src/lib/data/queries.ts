@@ -9,6 +9,7 @@ import {
 } from "@/lib/format";
 import { getStore } from "./store";
 import { dueOccurrences } from "./recurring";
+import { projectCashFlow, projectionSummary } from "./projection";
 import type {
   Account,
   Asset,
@@ -844,6 +845,62 @@ export function dueRecurringRules(workspaceId?: string) {
   );
   const due = dueOccurrences(rules, todayISO());
   return { count: due.length, rules: [...new Set(due.map((item) => item.rule))] };
+}
+
+/**
+ * Proyeksi arus kas beberapa bulan ke depan.
+ *
+ * Menggabungkan tiga sumber yang sudah diketahui — aturan berulang, tagihan
+ * aktif, dan rata-rata pengeluaran harian dari riwayat — menjadi perkiraan
+ * saldo per bulan.
+ *
+ * Rata-rata pengeluaran harian dihitung dari tiga bulan terakhir yang **sudah
+ * lewat**, bukan bulan berjalan, karena bulan berjalan belum penuh dan akan
+ * membuat perkiraan terlalu rendah.
+ */
+export function cashFlowProjection(workspaceId?: string, months = 6) {
+  const store = getStore();
+  const today = todayISO();
+  const startMonth = today.slice(0, 7);
+
+  const rules = store.recurringRules.filter((rule) =>
+    workspaceId ? rule.workspaceId === workspaceId : true,
+  );
+  const bills = store.bills.filter((bill) =>
+    workspaceId ? bill.workspaceId === workspaceId : true,
+  );
+
+  /*
+   * Rata-rata pengeluaran tak terjadwal: total pengeluaran tiga bulan terakhir
+   * dibagi tiga, dikurangi tagihan yang sudah terjadwal agar tidak dihitung
+   * dua kali.
+   */
+  const pastMonths = lastMonths(3).filter((month) => month < startMonth);
+  let unplannedTotal = 0;
+  let incomeTotal = 0;
+
+  for (const month of pastMonths) {
+    const summary = monthSummary(month, workspaceId ? { workspaceId } as Viewer : undefined);
+    unplannedTotal += summary.expense;
+    incomeTotal += summary.income;
+  }
+
+  const averageUnplanned =
+    pastMonths.length > 0 ? Math.round(unplannedTotal / pastMonths.length) : 0;
+  const averageIncome =
+    pastMonths.length > 0 ? Math.round(incomeTotal / pastMonths.length) : 0;
+
+  const projection = projectCashFlow({
+    openingBalance: totalBalance(workspaceId),
+    startMonth,
+    months,
+    rules,
+    bills,
+    averageUnplannedExpense: averageUnplanned,
+    averageHistoricalIncome: averageIncome,
+  });
+
+  return { months: projection, summary: projectionSummary(projection) };
 }
 
 export function dashboardData(viewer?: Viewer) {
