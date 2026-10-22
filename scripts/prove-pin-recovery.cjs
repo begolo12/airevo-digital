@@ -71,13 +71,21 @@ async function loginToProfiles(page) {
   const accepted = /berhasil diperbarui/i.test(bodyAfterRight);
   console.log("5. Kata sandi benar diterima              :", accepted ? "ya" : "TIDAK");
 
-  // Periksa database: PIN harus berubah.
+  /*
+   * Periksa database: hash PIN harus benar-benar berubah.
+   *
+   * Profil disimpan di `app_state` sebagai satu larik JSON, bukan di
+   * `workspace_records`. Percobaan pertama memakai tabel yang salah sehingga
+   * selalu melaporkan "TIDAK" padahal PIN sudah berubah — verifikasi yang
+   * menyesatkan lebih buruk daripada tidak ada verifikasi.
+   */
   const sql = postgres(dbUrl(), { max: 1, prepare: false, ssl: "require" });
-  const [row] = await sql`
-    select data->>'pinHash' as hash from workspace_records
-    where collection = 'profiles' and id = 'p-irvan'
-  `;
-  const changed = Boolean(row?.hash);
+  const [stateRow] = await sql`select value from app_state where key = 'profiles'`;
+  const profiles = Array.isArray(stateRow?.value) ? stateRow.value : [];
+  const irvan = profiles.find((item) => item.id === "p-irvan");
+  const changed =
+    typeof irvan?.pinHash === "string" && irvan.pinHash.startsWith("scrypt$");
+
   console.log("6. PIN tersimpan di database              :", changed ? "ya" : "TIDAK");
 
   // 3. Masuk dengan PIN baru.
@@ -97,20 +105,18 @@ async function loginToProfiles(page) {
   const loggedIn = page.url().includes("/keluarga");
   console.log("7. Masuk dengan PIN baru                  :", loggedIn ? "ya" : "TIDAK");
 
-  // Kembalikan PIN ke 1234 agar data demo tetap konsisten.
-  await sql`
-    update workspace_records
-    set data = jsonb_set(data, '{pinHash}', to_jsonb(
-      (select data->>'pinHash' from workspace_records
-       where collection = 'profiles' and id = 'p-irvan')
-    ))
-    where collection = 'profiles' and id = 'p-irvan'
-  `;
+  /*
+   * Skrip ini sengaja tidak mengembalikan PIN sendiri.
+   *
+   * Hash PIN dibuat dengan scrypt bersalt, jadi mengembalikannya butuh
+   * `hashPin` dari kode aplikasi — bukan operasi SQL. Itu tugas
+   * `scripts/restore-demo-pin.cjs`, yang dipanggil terpisah setelah skrip ini.
+   */
   await sql.end();
 
   await browser.close();
 
-  const ok = hasLink > 0 && formVisible > 0 && rejected && accepted && loggedIn;
+  const ok = hasLink > 0 && formVisible > 0 && rejected && accepted && changed && loggedIn;
   console.log("");
   console.log(ok ? "PEMULIHAN PIN OK" : "GAGAL");
   process.exit(ok ? 0 : 1);

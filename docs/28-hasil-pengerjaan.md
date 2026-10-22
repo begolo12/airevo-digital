@@ -40,6 +40,7 @@ direncanakan. Setiap klaim disertai angka atau perintah yang bisa diulang.
 | 3.12 Proyeksi arus kas | **Selesai** | 27 test + tampil di Laporan |
 | 5.1 Aplikasi Android | **Selesai** | Flutter + REST API; lihat [32](32-aplikasi-android.md) |
 | 3.13 Korupsi teks halaman Tugas | **Selesai** | 7 kata + pemindai diperkuat |
+| 6.1 Audit e2e semua fitur | **Selesai** | 33 pemeriksaan, 0 gagal |
 | 4.1 Rate limit persisten | **Selesai** | Postgres; lihat [31](31-pembatas-laju-persisten.md) |
 | 4.2 Uji konkurensi | **Selesai** | pola aman; lihat [29](29-uji-konkurensi.md) |
 | 4.3 Uji aksesibilitas | **Selesai** | 46 pemeriksaan, 0 pelanggaran |
@@ -248,7 +249,81 @@ adalah audit aksesibilitas otomatis — bukan pemeriksaan manual.
 
 Sekarang memakai `text-positive` yang punya nilai terpisah untuk kedua mode.
 
-### 3.13 Pemindai korupsi teks sendiri punya bug
+### 3.13 Halaman Anggaran membaca data lintas ruang
+
+Audit e2e menyeluruh menemukan halaman Anggaran memanggil query **tanpa
+`viewer`**:
+
+```ts
+const rows = budgetRows(month);            // semua ruang
+const totals = budgetTotals(month);        // semua ruang
+const trend = categoryTrend(6, month);     // semua ruang
+const expenseCategories = listCategories("expense");
+```
+
+**Tiga akibat sekaligus:**
+
+| Masalah | Akibat |
+| --- | --- |
+| Tanpa `viewer` | Anggaran dari SEMUA ruang bercampur; angkanya salah tanpa terlihat salah |
+| `listCategories("expense")` | `"expense"` dikirim sebagai **workspaceId**, bukan jenis — dropdown kosong |
+| Dropdown kosong + `required` | Formulir anggaran **tidak bisa disimpan sama sekali** |
+
+Bug ketiga adalah yang paling merusak: fitur inti halaman itu tidak berfungsi,
+dan tidak ada pesan galat — tombol hanya tidak melakukan apa pun karena
+validasi HTML menahan submit.
+
+**Bukti perbaikan** (`scripts/prove-budget-scope.cjs`): anggaran Rp987.654.321
+disisipkan ke ruang pribadi, lalu halaman keluarga dibuka — angka itu tidak
+muncul, dan dropdown berisi 15 opsi.
+
+### 3.14 `min={1}` + `step` membuat nominal bulat ditolak browser
+
+Tiga field memakai `min={1}` bersama `step` lebih dari 1:
+
+```html
+<input name="amount" type="number" min={1} step={1000} placeholder="395000" />
+```
+
+Aturan validasi HTML: nilai sah = `min + n × step`. Dengan `min=1` dan
+`step=1000`, nilai sahnya 1, 1001, 2001, … — sehingga **395000 dari placeholder
+sendiri ditolak**. Pesan browsernya: "The two nearest valid values are 174001
+and 175001."
+
+Diperbaiki di tiga tempat: tagihan, utang (pokok), dan tujuan.
+
+### 3.15 Pembatalan transaksi tidak bisa diurungkan lewat menu klik-kanan
+
+Tombol "Batalkan" di baris sudah punya `undoAction`, tetapi item yang sama di
+menu klik-kanan tidak. Padahal menu itulah yang dipakai untuk aksi berisiko —
+justru di situ kesalahan klik paling mahal.
+
+`ContextMenuItem` sekarang mendukung `undoAction`, dan item "Batalkan transaksi"
+memakainya.
+
+### 3.16 Kartu tidak bisa menyusut — luapan horizontal 156px
+
+Di layar 390px, halaman `/keluarga` melebar sampai 546px. Penyebabnya: sebagai
+anak grid, lebar minimum sebuah elemen secara default adalah `min-content`,
+bukan nol. Kartu berisi teks `truncate` (yang memakai `white-space: nowrap`)
+karena itu menolak menyusut.
+
+Diperbaiki dengan `min-w-0` pada komponen `Card` — satu perubahan yang berlaku
+untuk seluruh aplikasi.
+
+### 3.17 Progressbar tanpa nama dan kontras sel kalender
+
+Dua pelanggaran aksesibilitas baru muncul setelah data uji bertambah:
+
+| Pelanggaran | Sebab |
+| --- | --- |
+| `aria-progressbar-name` | `label={row.category?.name}` kosong untuk pengeluaran tanpa kategori |
+| `color-contrast` | Angka hari di sel heatmap memakai `text-muted` di latar yang menggelap |
+
+Diperbaiki: `ProgressBar` selalu punya nama (cadangan: persentasenya), dan angka
+hari memakai `text-ink`.
+
+### 3.18 Pemindai korupsi teks sendiri punya bug
 
 Enam korupsi masih bersarang di halaman Tugas rumah: `coiumn`, `Muiai`,
 `Kembaii`, `Uiangi`, `dibataikan`, `opsionai`, `Sekaii`. Tombol berbunyi
@@ -281,7 +356,7 @@ Ketika audit melaporkan "bersih", yang terbukti hanyalah "bersih menurut alat
 itu". Alat perlu diuji dengan cara menyuntikkan kesalahan yang diketahui —
 bukan hanya dijalankan.
 
-### 3.14 Bug dark mode
+### 3.19 Bug dark mode
 
 | Bug | Akibat |
 | --- | --- |
@@ -785,6 +860,11 @@ terdeteksi `tsc`, `lint`, maupun test yang sudah ada:
 | `formData.get` untuk kotak centang | Pembagian hanya untuk satu anggota |
 | Test flaky `order-code` (0.16%) | Kegagalan acak membuat CI tidak dipercaya |
 | 7 korupsi teks di halaman Tugas | Tombol berbunyi "Muiai", "Kembaii" |
+| Halaman Anggaran tanpa `viewer` | Anggaran lintas ruang bercampur |
+| `listCategories("expense")` | Dropdown kosong; form anggaran tidak bisa disimpan |
+| `min={1}` + `step` di 3 field | Nominal bulat ditolak browser |
+| Kartu tanpa `min-w-0` | Luapan horizontal 156px di layar 390px |
+| Progressbar tanpa nama | Pembaca layar tidak tahu apa yang diukur |
 | Pemindai korupsi sendiri punya bug | Korupsi lolos dari audit otomatis |
 
 **Pelajaran yang berulang:** menambah koleksi atau fitur baru berarti memeriksa

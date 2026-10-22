@@ -5,6 +5,7 @@ import { ActionForm, ActionButton } from "@/components/ui/action-form";
 import { removeBudget, setBudget } from "@/lib/data/actions";
 import { budgetRows, budgetTotals, categoryTrend, listCategories } from "@/lib/data/queries";
 import { Sparkline } from "@/components/app/viz";
+import { requireViewer } from "@/lib/session";
 import { addMonths, currentMonth, formatIDR, formatMonth } from "@/lib/format";
 
 export const metadata = { title: "Anggaran" };
@@ -16,18 +17,34 @@ export default async function AnggaranPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  /*
+   * Viewer wajib: halaman ini menampilkan anggaran sebuah ruang data.
+   *
+   * Tanpa viewer, `budgetRows` mengembalikan anggaran dari SEMUA ruang dan
+   * `categoryTrend` menjumlahkan pengeluaran seluruh ruang. Hasilnya tetap
+   * terlihat masuk akal di layar — hanya angkanya salah dan bercampur — jadi
+   * kebocoran seperti ini tidak akan terlihat tanpa membandingkan antar-ruang.
+   */
+  const viewer = await requireViewer();
   const params = await searchParams;
   const month = typeof params.bulan === "string" ? params.bulan : currentMonth();
-  const rows = budgetRows(month);
-  const totals = budgetTotals(month);
+  const rows = budgetRows(month, viewer);
+  const totals = budgetTotals(month, viewer);
 
   /*
    * Tren 6 bulan per kategori. Angka "Rp640.000" tidak memberi tahu apakah
    * pengeluaran naik atau turun; garis kecil di sampingnya memberi tahu dalam
    * sekejap.
    */
-  const trend = categoryTrend(6, month);
-  const expenseCategories = listCategories("expense");
+  const trend = categoryTrend(6, month, viewer);
+
+  /*
+   * `listCategories(workspaceId, kind)` — argumen pertama adalah ruang, bukan
+   * jenis. Memanggil `listCategories("expense")` menyaring berdasarkan id
+   * ruang bernama "expense" yang tidak ada, sehingga daftar kosong dan
+   * formulir tidak bisa disimpan sama sekali.
+   */
+  const expenseCategories = listCategories(viewer.workspaceId, "expense");
 
   return (
     <div className="space-y-5">

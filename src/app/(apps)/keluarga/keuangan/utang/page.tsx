@@ -133,8 +133,8 @@ export default async function UtangPage() {
                               <input
                                 name="amount"
                                 type="number"
-                                min={1}
-                                step={50000}
+                                min={0}
+                                step={1}
                                 defaultValue={debt.installmentAmount ?? 0}
                                 className="h-8 w-32 rounded-[8px] border border-line-strong bg-card px-2 text-xs"
                               />
@@ -194,7 +194,7 @@ export default async function UtangPage() {
                 <input name="counterparty" required maxLength={120} className={inputClass} placeholder="KPR BCA" />
               </Field>
               <Field label="Pokok (Rp)">
-                <input name="principal" type="number" min={1} step={100000} required className={inputClass} placeholder="420000000" />
+                <input name="principal" type="number" min={0} step={100000} required className={inputClass} placeholder="420000000" />
               </Field>
               <Field label="Sisa saat ini (Rp)" hint="Kosongkan bila sama dengan pokok">
                 <input name="remaining" type="number" min={0} step={100000} className={inputClass} />

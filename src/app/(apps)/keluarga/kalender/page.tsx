@@ -164,9 +164,15 @@ export default async function KalenderPage({
                     }
                   >
                     <p
-                      className={`text-xs font-bold tnum ${
-                        isToday ? "text-ink" : "text-muted"
-                      }`}
+                      /*
+                       * Selalu `text-ink`, bukan `text-muted`.
+                       *
+                       * Latar sel menggelap sesuai besarnya pengeluaran. Di sel
+                       * yang paling gelap, `text-muted` hanya mencapai kontras
+                       * ~3.6:1 — di bawah ambang WCAG AA 4.5:1. `text-ink`
+                       * tetap terbaca di semua tingkat.
+                       */
+                      className="text-xs font-bold tnum text-ink"
                     >
                       {day}
                     </p>

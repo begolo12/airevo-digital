@@ -192,13 +192,26 @@ export function ProgressBar({
 
   const clamped = Math.max(0, Math.min(ratio, 100));
 
+  /*
+   * Nama aksesibel wajib ada.
+   *
+   * `role="progressbar"` tanpa nama membuat pembaca layar mengumumkan
+   * "progressbar" tanpa menjelaskan apa yang diukur — tidak berguna.
+   * Pemanggil boleh memberi label yang spesifik ("Anggaran Belanja Dapur"),
+   * tetapi label bisa kosong saat data tidak lengkap: pengeluaran tanpa
+   * kategori menghasilkan `label={row.category?.name}` yang `undefined`.
+   *
+   * Karena itu ada nilai cadangan yang tetap informatif: persentasenya.
+   */
+  const accessibleName = label?.trim() || `Progres ${Math.round(ratio)}%`;
+
   return (
     <div
       role="progressbar"
       aria-valuenow={Math.round(ratio)}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-label={label}
+      aria-label={accessibleName}
       className="h-2 w-full overflow-hidden rounded-full bg-paper-deep"
     >
       <div className={`h-full rounded-full ${tones[tone]}`} style={{ width: `${clamped}%` }} />
@@ -241,8 +254,20 @@ export function Card({
   className?: string;
 }) {
   return (
+    /*
+     * `min-w-0` wajib ada.
+     *
+     * Sebagai anak flex atau grid, lebar minimum sebuah elemen secara default
+     * adalah `min-content` — bukan nol. Untuk kartu yang berisi teks
+     * `truncate` (yang memakai `white-space: nowrap`), `min-content` sama
+     * dengan lebar teks tanpa dipotong. Akibatnya kartu menolak menyusut dan
+     * mendorong halaman melebar di layar sempit.
+     *
+     * `min-w-0` mengizinkan kartu menyusut, sehingga `truncate` benar-benar
+     * memotong teks dengan elipsis seperti maksudnya.
+     */
     <div
-      className={`rounded-[14px] border border-line bg-card ${className ?? ""}`}
+      className={`min-w-0 rounded-[14px] border border-line bg-card ${className ?? ""}`}
     >
       {children}
     </div>

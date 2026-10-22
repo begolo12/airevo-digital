@@ -40,7 +40,12 @@ export default async function TagihanPage() {
   const bills = billRows(ws);
   const members = getStore().members.filter((item) => item.active);
   const accounts = listAccounts(ws);
-  const categories = listCategories("expense");
+  /*
+   * Argumen pertama `listCategories` adalah ruang data, bukan jenis. Memanggil
+   * `listCategories("expense")` menyaring berdasarkan id ruang yang tidak ada,
+   * sehingga dropdown kategori kosong dan tagihan tidak bisa diberi kategori.
+   */
+  const categories = listCategories(ws, "expense");
 
   const totalMonthly = bills.reduce((sum, bill) => sum + bill.amount, 0);
   const overdue = bills.filter((b) => b.state === "overdue").length;
@@ -200,7 +205,7 @@ export default async function TagihanPage() {
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Jumlah (Rp)">
-                  <input name="amount" type="number" min={1} step={1000} required className={inputClass} placeholder="395000" />
+                  <input name="amount" type="number" min={0} step={1000} required className={inputClass} placeholder="395000" />
                 </Field>
                 <Field label="Frekuensi">
                   <select name="frequency" className={selectClass} defaultValue="monthly">

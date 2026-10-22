@@ -177,7 +177,7 @@ export default async function RencanaPage() {
                 </select>
               </Field>
               <Field label="Target (Rp)">
-                <input name="targetAmount" type="number" min={1} step={100000} required className={inputClass} placeholder="60000000" />
+                <input name="targetAmount" type="number" min={0} step={100000} required className={inputClass} placeholder="60000000" />
               </Field>
               <Field label="Target tanggal">
                 <input name="targetDate" type="date" className={inputClass} defaultValue={todayISO()} />

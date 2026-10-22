@@ -29,6 +29,15 @@ export type ContextMenuItem =
       confirm?: string;
       confirmDescription?: string;
       icon?: ReactNode;
+      /**
+       * Aksi pembalik yang ditawarkan di toast setelah aksi utama berhasil.
+       *
+       * Menu klik-kanan dipakai untuk aksi yang jarang dan berisiko — justru
+       * di situ kesalahan klik paling mahal. Tanpa jalur kembali, satu salah
+       * pilih memaksa mencatat ulang dari awal.
+       */
+      undoAction?: ServerAction;
+      undoLabel?: string;
     }
   | { kind: "link"; label: string; href: string; icon?: ReactNode }
   | { kind: "copy"; label: string; value: string; message?: string; icon?: ReactNode }
@@ -157,7 +166,44 @@ export function ContextMenu({
         const result = await item.action(formData);
         if (result && typeof result === "object" && "ok" in result) {
           if (result.ok) {
-            toast.success(result.message ?? "Tersimpan");
+            /*
+             * Aksi pembalik ditawarkan di toast, bukan langsung dijalankan.
+             *
+             * Hanya ditawarkan bila aksi utama benar-benar berhasil — kalau
+             * gagal, tidak ada yang perlu dibatalkan dan tombol "Urungkan"
+             * hanya akan membingungkan.
+             */
+            const undo = item.undoAction;
+            if (undo) {
+              toast.toast({
+                title: result.message ?? "Tersimpan",
+                tone: "success",
+                duration: 6000,
+                action: {
+                  label: item.undoLabel ?? "Urungkan",
+                  onClick: () => {
+                    startTransition(async () => {
+                      const undoData = new FormData();
+                      for (const [key, value] of Object.entries(item.fields ?? {})) {
+                        if (value !== undefined) undoData.append(key, String(value));
+                      }
+
+                      const undone = await undo(undoData);
+                      if (undone && typeof undone === "object" && "ok" in undone) {
+                        if (undone.ok) {
+                          toast.success(undone.message ?? "Dibatalkan");
+                        } else {
+                          toast.error(undone.message ?? "Gagal membatalkan");
+                        }
+                      }
+                      router.refresh();
+                    });
+                  },
+                },
+              });
+            } else {
+              toast.success(result.message ?? "Tersimpan");
+            }
           } else {
             toast.error(result.message ?? "Gagal diproses");
           }

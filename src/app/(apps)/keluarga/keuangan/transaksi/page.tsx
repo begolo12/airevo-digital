@@ -276,6 +276,13 @@ export default async function TransaksiPage({
                         confirm: "Batalkan transaksi ini?",
                         confirmDescription:
                           "Saldo akun akan dikembalikan. Transaksi tetap tersimpan sebagai jejak audit, tidak dihapus.",
+                        /*
+                         * Sama dengan tombol "Batalkan" di baris: pembatalan
+                         * adalah aksi yang paling sering salah klik, jadi jalur
+                         * kembalinya harus ada di kedua tempat — bukan hanya di
+                         * tombol.
+                         */
+                        undoAction: restoreTransaction,
                       },
                     ]}
                   >

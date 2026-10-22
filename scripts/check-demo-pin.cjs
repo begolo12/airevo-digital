@@ -12,7 +12,7 @@ const BASE = "http://localhost:3100";
   await page.fill('input[name="password"]', "airevo123");
   await page.click('button[type="submit"]');
   await page.waitForURL("**/pilih-profil**", { timeout: 20000 });
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(1200);
 
   await page.getByRole("button", { name: /Irvan/ }).first().click();
   await page.waitForTimeout(600);
