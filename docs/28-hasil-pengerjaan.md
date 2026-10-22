@@ -38,6 +38,7 @@ direncanakan. Setiap klaim disertai angka atau perintah yang bisa diulang.
 | 3.10 Pisah tagihan | **Selesai** | 25 test + terbukti end-to-end |
 | 3.11 Lupa PIN | **Selesai** | 8 test + terbukti end-to-end |
 | 3.12 Proyeksi arus kas | **Selesai** | 27 test + tampil di Laporan |
+| 3.13 Korupsi teks halaman Tugas | **Selesai** | 7 kata + pemindai diperkuat |
 | 4.1 Rate limit persisten | **Selesai** | Postgres; lihat [31](31-pembatas-laju-persisten.md) |
 | 4.2 Uji konkurensi | **Selesai** | pola aman; lihat [29](29-uji-konkurensi.md) |
 | 4.3 Uji aksesibilitas | **Selesai** | 46 pemeriksaan, 0 pelanggaran |
@@ -246,7 +247,40 @@ adalah audit aksesibilitas otomatis — bukan pemeriksaan manual.
 
 Sekarang memakai `text-positive` yang punya nilai terpisah untuk kedua mode.
 
-### 3.13 Bug dark mode
+### 3.13 Pemindai korupsi teks sendiri punya bug
+
+Enam korupsi masih bersarang di halaman Tugas rumah: `coiumn`, `Muiai`,
+`Kembaii`, `Uiangi`, `dibataikan`, `opsionai`, `Sekaii`. Tombol berbunyi
+"Muiai" dan "Kembaii" — terlihat jelas oleh pengguna, tetapi lolos dari
+pemindai otomatis.
+
+**Dua bug di pemindai:**
+
+| Bug | Akibat |
+| --- | --- |
+| Mengganti **semua** `i`↔`l` sekaligus | `Muiai` → `mulal` (bukan kata), seharusnya `mulai` |
+| Kamus hanya berisi kata Indonesia | `coiumn` tidak punya pembanding `column` |
+
+**Perbaikannya:** coba setiap posisi satu per satu, dan tambahkan istilah
+Inggris yang dipakai sebagai identifier.
+
+**Diverifikasi dengan uji sengaja** — menyisipkan `coiumn` lalu memastikan
+pemindai menangkapnya, kemudian mengembalikannya:
+
+```
+=== dengan korupsi sengaja ===
+1 kecurigaan korupsi:
+  coiumn → column
+=== setelah dikembalikan ===
+Tidak ada korupsi teks ditemukan.
+```
+
+**Pelajaran terpenting dari seluruh proyek ini:** alat audit juga bisa salah.
+Ketika audit melaporkan "bersih", yang terbukti hanyalah "bersih menurut alat
+itu". Alat perlu diuji dengan cara menyuntikkan kesalahan yang diketahui —
+bukan hanya dijalankan.
+
+### 3.14 Bug dark mode
 
 | Bug | Akibat |
 | --- | --- |

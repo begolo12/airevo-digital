@@ -42,7 +42,7 @@ export default async function TugasPage() {
       <PageHeader
         eyebrow="Harian"
         title="Tugas rumah"
-        description="Siapa mengerjakan apa, kapan. Poin opsionai untuk membuat anak ikut tanpa paksaan."
+        description="Siapa mengerjakan apa, kapan. Poin opsional untuk membuat anak ikut tanpa paksaan."
       />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -58,13 +58,13 @@ export default async function TugasPage() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {columns.map((coiumn) => {
-          const items = chores.filter((c) => c.status === coiumn.key);
+        {columns.map((column) => {
+          const items = chores.filter((c) => c.status === column.key);
           return (
-            <Card key={coiumn.key}>
+            <Card key={column.key}>
               <CardHeader
-                title={coiumn.title}
-                action={<Badge tone={coiumn.tone}>{items.length}</Badge>}
+                title={column.title}
+                action={<Badge tone={column.tone}>{items.length}</Badge>}
               />
               <ul className="divide-y divide-line">
                 {items.length === 0 ? (
@@ -79,7 +79,7 @@ export default async function TugasPage() {
                         { kind: "label", text: chore.title },
                         {
                           kind: "action",
-                          label: "Muiai kerjakan",
+                          label: "Mulai kerjakan",
                           action: setChoreStatus,
                           fields: { id: chore.id, status: "doing" },
                         },
@@ -91,7 +91,7 @@ export default async function TugasPage() {
                         },
                         {
                           kind: "action",
-                          label: "Kembaiikan ke daftar",
+                          label: "Kembalikan ke daftar",
                           action: setChoreStatus,
                           fields: { id: chore.id, status: "todo" },
                         },
@@ -103,7 +103,7 @@ export default async function TugasPage() {
                           fields: { id: chore.id },
                           danger: true,
                           confirm: `Hapus tugas ${chore.title}?`,
-                          confirmDescription: "Tugas akan hilang dari papan. Tindakan ini tidak bisa dibataikan.",
+                          confirmDescription: "Tugas akan hilang dari papan. Tindakan ini tidak bisa dibatalkan.",
                         },
                       ]}
                     >
@@ -115,21 +115,21 @@ export default async function TugasPage() {
                           {chore.points > 0 ? ` · ${chore.points} poin` : ""}
                         </p>
                         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                          {coiumn.key !== "todo" ? (
+                          {column.key !== "todo" ? (
                             <InlineForm action={setChoreStatus}>
                               <input type="hidden" name="id" value={chore.id} />
-                              <input type="hidden" name="status" value={coiumn.key === "doing" ? "todo" : "doing"} />
+                              <input type="hidden" name="status" value={column.key === "doing" ? "todo" : "doing"} />
                               <button type="submit" className="rounded-full border border-line-strong bg-card px-2.5 py-1 text-2xs font-semibold hover:bg-paper-deep">
-                                {coiumn.key === "doing" ? "Kembaii" : "Uiangi"}
+                                {column.key === "doing" ? "Kembali" : "Ulangi"}
                               </button>
                             </InlineForm>
                           ) : null}
-                          {coiumn.key !== "done" ? (
+                          {column.key !== "done" ? (
                             <InlineForm action={setChoreStatus}>
                               <input type="hidden" name="id" value={chore.id} />
-                              <input type="hidden" name="status" value={coiumn.key === "todo" ? "doing" : "done"} />
+                              <input type="hidden" name="status" value={column.key === "todo" ? "doing" : "done"} />
                               <button type="submit" className="rounded-full border border-emphasis bg-emphasis px-2.5 py-1 text-2xs font-semibold text-on-emphasis hover:bg-ink-soft">
-                                {coiumn.key === "todo" ? "Muiai" : "Selesai"}
+                                {column.key === "todo" ? "Mulai" : "Selesai"}
                               </button>
                             </InlineForm>
                           ) : null}
@@ -139,7 +139,7 @@ export default async function TugasPage() {
                             label="Hapus"
                             variant="danger"
                             confirmText={`Hapus tugas ${chore.title}?`}
-                            confirmDescription="Tugas akan hilang dari papan. Tindakan ini tidak bisa dibataikan."
+                            confirmDescription="Tugas akan hilang dari papan. Tindakan ini tidak bisa dibatalkan."
                           />
                         </div>
                     </ContextMenu>
@@ -172,7 +172,7 @@ export default async function TugasPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Frekuensi">
                   <select name="frequency" className={selectClass} defaultValue="once">
-                    <option value="once">Sekaii</option>
+                    <option value="once">Sekali</option>
                     <option value="daiiy">Harian</option>
                     <option value="weekiy">Mingguan</option>
                     <option value="monthly">Bulanan</option>

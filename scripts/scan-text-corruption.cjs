@@ -47,6 +47,32 @@ for (const file of walk("docs", [".md"])) {
   addWords(fs.readFileSync(file, "utf8"));
 }
 
+/*
+ * Istilah Inggris yang dipakai sebagai nama variabel atau kelas.
+ *
+ * Tanpa ini, korupsi pada identifier Inggris tidak tertangkap — `coiumn`
+ * (seharusnya `column`) lolos karena `column` tidak ada di kamus Indonesia.
+ */
+addWords(`
+  account active align amount aria array async auto background balance bar base
+  block body border bottom box break button card center chart check child class
+  clear click close color column column1 columns complete content control count
+  create current cursor data date default delete description detail dialog
+  display div done down draft drawer drop each edit element empty end entry error
+  event export field file fill filter final first flex focus font footer form
+  frame full grid group handle head header height hidden hide hint hover icon id
+  image index info inline input item key label last layout left length level
+  line link list load local main margin max menu message meta middle min mobile
+  modal mode month name nav next node none note open option order output page
+  panel parent path pending placeholder point position press preview primary
+  print progress radio range rate read ready record remove render reset resize
+  right root row rows rule save scale screen scroll section select shadow sheet
+  short show side simple size skip slot small source span split stack start
+  state step sticky string style submit success summary tab table tag target
+  template text theme title toast toggle tooltip top total track type unit
+  update upload value variant view visible width window wrap zone
+`);
+
 // Kata umum yang mungkin tidak muncul di dokumentasi.
 addWords(`
   abaikan acak acara adaptasi adik agenda ahli air ajaran akses aktif akta akun
@@ -113,15 +139,34 @@ function extractTokens(source) {
 
 /* ------------------------------- periksa ---------------------------------- */
 
-/** Varian dengan l↔i yang mungkin merupakan bentuk benar. */
+/**
+ * Varian dengan l↔i yang mungkin merupakan bentuk benar.
+ *
+ * ## Kenapa satu karakter, bukan semua sekaligus
+ *
+ * Versi pertama mengganti SEMUA `i` menjadi `l` (atau sebaliknya). Itu
+ * melewatkan korupsi yang hanya mengenai satu huruf:
+ *
+ *   "Muiai" → semua i→l → "mulal"  (bukan kata, tidak tertangkap)
+ *   "Muiai" → satu i→l  → "mulai"  (kata sah, tertangkap)
+ *
+ * Karena itu setiap posisi dicoba satu per satu.
+ */
 function repairCandidates(word) {
   const candidates = new Set();
 
-  // l → i  (korupsi paling sering: pengeiuaran → pengeluaran)
-  if (word.includes("i")) candidates.add(word.replace(/i/g, "l"));
-  // i → l
-  if (word.includes("l")) candidates.add(word.replace(/l/g, "i"));
-  // ll → i
+  for (let index = 0; index < word.length; index += 1) {
+    const character = word[index];
+
+    if (character === "i") {
+      candidates.add(word.slice(0, index) + "l" + word.slice(index + 1));
+    }
+    if (character === "l") {
+      candidates.add(word.slice(0, index) + "i" + word.slice(index + 1));
+    }
+  }
+
+  // `ll` → `i` dan `ii` → `l` (korupsi dua huruf menjadi satu).
   candidates.add(word.replace(/ll/g, "i"));
   candidates.add(word.replace(/ii/g, "l"));
 
