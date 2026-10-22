@@ -783,6 +783,8 @@ terdeteksi `tsc`, `lint`, maupun test yang sudah ada:
 | Kontras `text-mint-deep` 3.1:1 | Di bawah ambang WCAG AA |
 | `formData.get` untuk kotak centang | Pembagian hanya untuk satu anggota |
 | Test flaky `order-code` (0.16%) | Kegagalan acak membuat CI tidak dipercaya |
+| 7 korupsi teks di halaman Tugas | Tombol berbunyi "Muiai", "Kembaii" |
+| Pemindai korupsi sendiri punya bug | Korupsi lolos dari audit otomatis |
 
 **Pelajaran yang berulang:** menambah koleksi atau fitur baru berarti memeriksa
 **semua** tempat yang sudah ada dan mungkin merujuknya — bukan hanya menulis
