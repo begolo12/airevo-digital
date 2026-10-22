@@ -1,0 +1,32 @@
+name: airevo_keluarga
+description: "Aplikasi keluarga Airevo - uang, rencana, dan ritme rumah."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Jaringan. Cukup `http` - tidak perlu Dio untuk beberapa endpoint.
+  http: ^1.2.2
+
+  # Token sesi disimpan di Android Keystore, bukan preferensi biasa.
+  # Token memberi akses ke seluruh data keuangan keluarga, jadi tidak boleh
+  # tersimpan sebagai teks biasa yang bisa dibaca aplikasi lain.
+  flutter_secure_storage: ^9.2.2
+
+  # Format rupiah dan tanggal bahasa Indonesia.
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
