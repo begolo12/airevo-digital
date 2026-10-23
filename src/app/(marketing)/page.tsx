@@ -103,7 +103,7 @@ export default function HomePage() {
                 { k: "0", v: "langganan bulanan" },
               ].map((item) => (
                 <div key={item.v} className="min-w-0">
-                  <dt className="text-[clamp(1.125rem,4.8vw,1.75rem)] leading-tight font-black tnum whitespace-nowrap">
+                  <dt className="text-[clamp(1rem,4.4vw,1.75rem)] leading-tight font-black tnum whitespace-nowrap">
                     {item.k}
                   </dt>
                   <dd className="mt-1 text-sm leading-snug text-muted">{item.v}</dd>
