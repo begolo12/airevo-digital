@@ -378,7 +378,18 @@ export async function persistStore(store: Store): Promise<void> {
   if (writes.length > 0) {
     const startedAt = Date.now();
     await Promise.all(writes.map((run) => run()));
-    console.log(`[store] ${writes.length} baris ditulis dalam ${Date.now() - startedAt} ms`);
+
+    /*
+     * Satu atau dua koleksi berubah adalah keadaan normal. Lonjakan berarti
+     * penanda sidik jari tidak sinkron lagi, dan setiap simpan mulai menulis
+     * ulang seluruh isi — kejadian yang membuat formulir terasa macet, jadi
+     * layak muncul di log.
+     */
+    if (writes.length > 5) {
+      console.warn(
+        `[store] ${writes.length} koleksi ditulis dalam ${Date.now() - startedAt} ms — periksa sinkronisasi penanda.`,
+      );
+    }
   }
 }
 
