@@ -41,11 +41,19 @@ export async function GET() {
     checks.database = "not-configured";
   }
 
-  // Penyimpanan berkas lokal hanya relevan bila tidak ada database.
-  const fileStorage = verifyPersistence();
-  checks.fileStorage = fileStorage.ok ? "writable" : "failed";
-  if (!fileStorage.ok) {
-    checks.fileStorageDetail = getPersistenceState().reason ?? fileStorage.reason;
+  /*
+   * Penyimpanan berkas lokal hanya relevan bila tidak ada database. Di Vercel
+   * filesystem memang read-only, jadi melaporkannya "failed" padahal data
+   * tersimpan di Postgres hanya membuat monitor berteriak tanpa sebab.
+   */
+  if (db) {
+    checks.fileStorage = "not-used";
+  } else {
+    const fileStorage = verifyPersistence();
+    checks.fileStorage = fileStorage.ok ? "writable" : "failed";
+    if (!fileStorage.ok) {
+      checks.fileStorageDetail = getPersistenceState().reason ?? fileStorage.reason;
+    }
   }
 
   /* ----------------------------- object storage ---------------------------- */
@@ -71,12 +79,12 @@ export async function GET() {
   }
 
   /*
-   * Data aman bila database hidup, atau bila berkas lokal masih bisa ditulis.
-   * Object storage dan auth bersifat tambahan: kegagalannya menurunkan status
-   * tetapi tidak membuat data pengguna hilang.
+   * Data aman bila database hidup, atau — saat tidak ada database — bila
+   * berkas lokal masih bisa ditulis. Object storage dan auth bersifat tambahan:
+   * kegagalannya menurunkan status tetapi tidak membuat data pengguna hilang.
    */
-  const dataSafe = databaseOk || fileStorage.ok;
-  const degraded = !dataSafe || !authOk && isNeonAuthConfigured();
+  const dataSafe = databaseOk || (!db && checks.fileStorage === "writable");
+  const degraded = !dataSafe || (!authOk && isNeonAuthConfigured());
 
   return Response.json(
     {
