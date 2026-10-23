@@ -74,6 +74,16 @@ export function AppCard({
             Akses seumur hidup, tanpa langganan.
           </p>
         </div>
+      ) : app.free ? (
+        <div className="rounded-[10px] border border-line bg-paper-deep/50 px-3 py-2.5">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-lg font-black">Gratis</span>
+            <span className="text-xs font-semibold text-muted">langsung dipakai</span>
+          </div>
+          <p className="mt-0.5 text-xs leading-snug text-muted">
+            Bisa dilihat tanpa akun.
+          </p>
+        </div>
       ) : (
         <div className="rounded-[10px] border border-dashed border-line-strong px-3 py-2.5">
           <p className="text-base font-semibold text-muted">Belum dijual</p>
@@ -93,6 +103,14 @@ export function AppCard({
             className="inline-flex h-9 items-center gap-1.5 rounded-full border border-emphasis bg-emphasis px-4 text-base font-bold text-on-emphasis hover:bg-ink-soft"
           >
             {checkoutOpen ? "Beli" : "Tanya"}
+            <Icon name="arrow-right" size={13} strokeWidth={2.2} />
+          </Link>
+        ) : app.free ? (
+          <Link
+            href={app.href}
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-emphasis bg-emphasis px-4 text-base font-bold text-on-emphasis hover:bg-ink-soft"
+          >
+            Buka
             <Icon name="arrow-right" size={13} strokeWidth={2.2} />
           </Link>
         ) : (

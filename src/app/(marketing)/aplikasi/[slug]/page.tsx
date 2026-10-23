@@ -162,6 +162,37 @@ export default async function AppDetailPage({
                 </Link>
               </p>
             </div>
+          ) : app.free ? (
+            <div className="note p-6">
+              <p className="label-eyebrow">Akses</p>
+              <p className="mt-2 text-3xl leading-none font-black">Gratis</p>
+              <p className="mt-1.5 text-sm font-semibold text-ink-soft">
+                Langsung dipakai, tanpa akun
+              </p>
+              <ul className="mt-5 space-y-2 border-t border-line pt-4 text-sm text-ink-soft">
+                {[
+                  "Buka lewat browser di ponsel atau laptop",
+                  "Data contoh sudah tersedia",
+                  "Masuk dengan akun untuk mengubah data",
+                ].map((item) => (
+                  <li key={item} className="flex gap-2.5">
+                    <span aria-hidden="true" className="mt-0.5 text-positive">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={app.href}
+                className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-emphasis bg-emphasis px-6 text-sm font-semibold text-on-emphasis hover:bg-ink-soft"
+              >
+                Buka Minisoccer
+                <Icon name="arrow-right" size={14} strokeWidth={2.2} />
+              </Link>
+              <p className="mt-3 text-center text-xs text-muted">
+                Berjalan di{" "}
+                <span className="font-mono">airevo-digital.my.id/minisoccer</span>
+              </p>
+            </div>
           ) : (
             <div className="rounded-[18px] border border-dashed border-line-strong bg-card/60 p-6">
               <p className="label-eyebrow">Harga</p>

@@ -59,6 +59,8 @@ katalog (`visible: false`) karena belum siap dijual. Yang aktif:
 1. **Landing umum** — studio, produk, model harga, jasa.
 2. **Katalog + penjualan** — harga per produk, checkout, lisensi, admin pesanan.
 3. **Keluarga** — produk pertama: uang, rencana, waktu, catatan, belanja, laporan.
+4. **Minisoccer** — aplikasi klub sepak bola mini, gratis, berjalan di
+   `/minisoccer/` lewat proxy ke proyek Vercel terpisah (`next.config.ts`).
 
 ### Model bisnis
 
@@ -67,6 +69,7 @@ katalog (`visible: false`) karena belum siap dijual. Yang aktif:
 | Produk | Harga | Status |
 | --- | --- | --- |
 | Keluarga | Rp49.000 | Dijual |
+| Minisoccer | Gratis | Terbuka, tanpa akun |
 | Ops, Keuangan | — | Disembunyikan sampai siap |
 
 Pembayaran sekarang **transfer bank manual**: pembeli checkout, dapat kode
@@ -89,6 +92,7 @@ Rincian: [docs/19-model-bisnis.md](docs/19-model-bisnis.md).
 | `/legal/privacy`, `/legal/terms` | Legal |
 | `/login` | Masuk |
 | `/keluarga` | Aplikasi Keluarga (18 halaman, dijaga gate lisensi) |
+| `/minisoccer` | Aplikasi Minisoccer (diproksi ke `minisoccer-club.vercel.app`) |
 | `/api/health` | Health check |
 
 ## Aplikasi Keluarga

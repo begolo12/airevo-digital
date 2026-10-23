@@ -48,8 +48,16 @@ export type AppEntry = {
   features: string[];
   version: string;
   lastUpdated: string;
-  /** Kosong berarti belum dijual (status "soon"). */
+  /** Kosong berarti belum dijual (status "soon") atau gratis (lihat `free`). */
   pricing?: Pricing;
+  /**
+   * Aplikasi yang bisa langsung dibuka tanpa membeli.
+   *
+   * Dipakai untuk produk yang sudah jalan tapi tidak dijual — mis. aplikasi
+   * demo atau alat internal. Kartu katalog menampilkan tombol "Buka" yang
+   * mengarah ke `href`, bukan ke halaman pembelian.
+   */
+  free?: boolean;
 };
 
 /**
@@ -117,6 +125,32 @@ export const apps: AppEntry[] = [
       currency: "IDR",
       license: lifetimeLicense("1 keluarga, hingga 6 anggota"),
     },
+  },
+  {
+    id: "minisoccer",
+    name: "Minisoccer",
+    tagline: "Turnamen, klasemen, dan iuran klub dalam satu aplikasi.",
+    description:
+      "Atur turnamen sepak bola mini: jadwal semua tim saling bertemu sekali dibuat otomatis, klasemen dan pencetak gol dihitung sendiri, iuran anggota tercatat, dan pengumuman sampai ke semua pemain.",
+    audience: "Untuk klub, komunitas, dan penyelenggara turnamen minisoccer.",
+    href: "/minisoccer/",
+    external: false,
+    marketingHref: "/aplikasi/minisoccer",
+    status: "available",
+    visible: true,
+    free: true,
+    requiresAuth: false,
+    accent: "sky",
+    version: "1.0",
+    lastUpdated: "Oktober 2026",
+    features: [
+      "Jadwal turnamen otomatis: semua tim saling bertemu sekali",
+      "Klasemen menang, seri, kalah, dan selisih gol",
+      "Catat skor, umpan gol, dan kartu per laga",
+      "Iuran anggota dan kas bulanan klub",
+      "Pengumuman untuk semua pemain",
+      "Mode publik: pemain bisa melihat tanpa akun",
+    ],
   },
   {
     id: "ops",
