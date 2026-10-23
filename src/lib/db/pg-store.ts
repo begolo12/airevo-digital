@@ -233,8 +233,11 @@ export async function persistStore(store: Store): Promise<void> {
   if (!database) return;
 
   const writes: Array<() => Promise<unknown>> = [];
+  const now = new Date();
 
   /* ----------------------------- keadaan tunggal ---------------------------- */
+
+  const stateRows: Array<{ key: string; value: object; updatedAt: Date }> = [];
 
   for (const key of STATE_KEYS) {
     const value = (store as unknown as Record<string, unknown>)[key];
@@ -243,16 +246,20 @@ export async function persistStore(store: Store): Promise<void> {
     const hash = fingerprint(value);
     if (known.get(`state\u0000${key}`) === hash) continue;
 
-    writes.push(async () => {
-      await database
+    stateRows.push({ key, value: value as object, updatedAt: now });
+    known.set(`state\u0000${key}`, hash);
+  }
+
+  if (stateRows.length > 0) {
+    writes.push(() =>
+      database
         .insert(appState)
-        .values({ key, value: value as object, updatedAt: new Date() })
+        .values(stateRows)
         .onConflictDoUpdate({
           target: appState.key,
-          set: { value: value as object, updatedAt: new Date() },
-        });
-    });
-    known.set(`state\u0000${key}`, hash);
+          set: { value: sql`excluded.value`, updatedAt: sql`excluded.updated_at` },
+        }),
+    );
   }
 
   /* --------------------------- koleksi per baris --------------------------- */
@@ -262,6 +269,13 @@ export async function persistStore(store: Store): Promise<void> {
       []) as Array<{ id?: string; workspaceId?: string }>;
 
     const present = new Set<string>();
+    const changed: Array<{
+      collection: string;
+      id: string;
+      workspaceId: string | null;
+      data: object;
+      updatedAt: Date;
+    }> = [];
 
     for (const row of rows) {
       if (!row.id) continue;
@@ -271,24 +285,30 @@ export async function persistStore(store: Store): Promise<void> {
       const key = recordKey(collection, row.id);
       if (known.get(key) === hash) continue;
 
-      const payload = {
+      changed.push({
         collection,
         id: row.id,
         workspaceId: row.workspaceId ?? null,
         data: row as object,
-        updatedAt: new Date(),
-      };
-
-      writes.push(async () => {
-        await database
-          .insert(workspaceRecords)
-          .values(payload)
-          .onConflictDoUpdate({
-            target: [workspaceRecords.collection, workspaceRecords.id],
-            set: { data: payload.data, workspaceId: payload.workspaceId, updatedAt: new Date() },
-          });
+        updatedAt: now,
       });
       known.set(key, hash);
+    }
+
+    if (changed.length > 0) {
+      writes.push(() =>
+        database
+          .insert(workspaceRecords)
+          .values(changed)
+          .onConflictDoUpdate({
+            target: [workspaceRecords.collection, workspaceRecords.id],
+            set: {
+              data: sql`excluded.data`,
+              workspaceId: sql`excluded.workspace_id`,
+              updatedAt: sql`excluded.updated_at`,
+            },
+          }),
+      );
     }
 
     /*
