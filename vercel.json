@@ -10,8 +10,12 @@
   ],
   "rewrites": [
     {
-      "source": "/minisoccer/:path*",
-      "destination": "https://minisoccer-club.vercel.app/minisoccer/:path*"
+      "source": "/minisoccer/",
+      "destination": "https://minisoccer-club.vercel.app/minisoccer/"
+    },
+    {
+      "source": "/minisoccer/:path+",
+      "destination": "https://minisoccer-club.vercel.app/minisoccer/:path+"
     }
   ],
   "headers": [
