@@ -17,7 +17,7 @@ import { hashPin } from "@/lib/auth/password";
 import { applyDueRules } from "./recurring";
 import { splitBill } from "./bill-split";
 import { safeNextPath as safeNextPathShared } from "@/lib/safe-path";
-import { getStore, saveStore } from "./store";
+import { flushStore, getStore, saveStore } from "./store";
 import {
   MAX_SHARED_WORKSPACES,
   type ActionResult,
@@ -2619,6 +2619,12 @@ export async function submitContact(formData: FormData): Promise<ActionResult> {
   });
 
   saveStore();
+  /*
+   * Tunggu penulisan selesai sebelum mengklaim "tercatat". Pesan kontak adalah
+   * satu-satunya jalur masuk bagi calon pembeli; janji yang tidak diikuti
+   * penyimpanan nyata berarti pesan itu hilang tanpa siapa pun sadar.
+   */
+  await flushStore();
   revalidatePath("/contact");
   revalidatePath("/keluarga/pengaturan");
   return {

@@ -13,7 +13,7 @@ import {
   revokeLicenseById,
   settleOrder,
 } from "./orders";
-import { getStore, saveStore } from "./store";
+import { flushStore, getStore, saveStore } from "./store";
 import type { ActionResult, Order } from "./types";
 
 /* ------------------------------- bantuan --------------------------------- */
@@ -143,6 +143,14 @@ export async function createOrder(
 
   store.orders.push(order);
   revalidateSales();
+
+  /*
+   * Tunggu pesanan benar-benar tersimpan sebelum pembeli diarahkan ke kode
+   * pembayarannya. Kode itu dipakai sebagai berita transfer; kalau barisnya
+   * tidak pernah sampai ke database, pembeli mentransfer tanpa rujukan yang
+   * bisa dicocokkan.
+   */
+  await flushStore();
 
   redirect(`/pesanan/${order.code}`);
 }

@@ -6,6 +6,7 @@ import {
   todayISO,
 } from "@/lib/format";
 import { randomBytes } from "node:crypto";
+import { after } from "next/server";
 import { hashPassword, hashPin } from "@/lib/auth/password";
 import { clearPersisted, readPersisted, writePersisted } from "./persist";
 import {
@@ -1436,6 +1437,21 @@ function enqueuePersist(store: Store): void {
         error instanceof Error ? error.message : error,
       );
     });
+
+  /*
+   * Di Vercel, fungsi boleh dihentikan begitu respons terkirim. Tanpa penjaga
+   * ini, penulisan yang masih berjalan terputus di tengah query dan mutasi
+   * pengguna hilang tanpa jejak — pesanan, transaksi, dan pesan kontak.
+   * `after()` meminta platform menahan fungsi sampai penulisan selesai.
+   *
+   * Di luar siklus permintaan (test, skrip) `after()` melempar; abaikan saja,
+   * pemanggil tetap bisa menunggu lewat `flushStore()`.
+   */
+  try {
+    after(() => persistQueue);
+  } catch {
+    /* bukan bagian dari permintaan */
+  }
 }
 
 /** Menunggu seluruh penulisan database selesai. Dipakai saat mematikan server dan di test. */
