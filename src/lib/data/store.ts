@@ -1290,6 +1290,59 @@ function seed(): Store {
 const globalStore = globalThis as unknown as { __airevoStore?: Store };
 
 /**
+ * Apakah data tersimpan masih perlu dilengkapi dari data contoh.
+ *
+ * Cukup periksa kunci wajib dan koleksi inti: kalau semuanya ada, `seed()`
+ * tidak perlu dijalankan sama sekali.
+ */
+function needsSeed(persisted: Partial<Store>): boolean {
+  if (!persisted.household) return true;
+  if (!Array.isArray(persisted.users) || persisted.users.length === 0) return true;
+  if (!Array.isArray(persisted.profiles) || persisted.profiles.length === 0) return true;
+  if (!Array.isArray(persisted.workspaces) || persisted.workspaces.length === 0) return true;
+  if (!Array.isArray(persisted.workspaceMembers) || persisted.workspaceMembers.length === 0) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Koleksi yang harus selalu berupa array.
+ *
+ * Dipakai saat `seed()` tidak dijalankan: data dari database bisa belum punya
+ * koleksi baru, dan halaman yang membaca `undefined.map()` akan gagal. Daftar
+ * ini mengikuti `Store` di `types.ts`.
+ */
+const ARRAY_KEYS = [
+  "users",
+  "profiles",
+  "workspaces",
+  "workspaceMembers",
+  "members",
+  "accounts",
+  "categories",
+  "transactions",
+  "recurringRules",
+  "budgets",
+  "bills",
+  "billPayments",
+  "goals",
+  "contributions",
+  "events",
+  "chores",
+  "shopping",
+  "debts",
+  "assets",
+  "insurances",
+  "documents",
+  "healthRecords",
+  "educationRecords",
+  "messages",
+  "orders",
+  "licenses",
+] as const satisfies readonly (keyof Store)[];
+
+/**
  * Menambal data lama dengan koleksi baru.
  *
  * Berkas `.data/store.json` bisa dibuat oleh versi aplikasi sebelumnya yang
@@ -1298,17 +1351,18 @@ const globalStore = globalThis as unknown as { __airevoStore?: Store };
  * data yang sudah ada tidak diubah.
  */
 function migrate(persisted: Partial<Store>): Store {
-  const defaults = seed();
-  const merged = { ...defaults, ...persisted } as Store;
+  /*
+   * `seed()` bukan sekadar data contoh: ia menjalankan scrypt untuk kata sandi
+   * dan empat PIN profil. Memanggilnya di setiap pemuatan berarti ratusan
+   * milidetik terbuang sebelum permintaan pertama dilayani, padahal data dari
+   * database sudah lengkap. Karena itu seed hanya dibuat bila ada yang kurang.
+   */
+  const defaults = needsSeed(persisted) ? seed() : null;
+  const merged = { ...(defaults ?? {}), ...persisted } as Store;
 
-  // Koleksi berbentuk array: pastikan selalu ada.
-  const arrayKeys = Object.keys(defaults).filter(
-    (key) => Array.isArray(defaults[key as keyof Store]),
-  ) as Array<keyof Store>;
-
-  for (const key of arrayKeys) {
+  for (const key of ARRAY_KEYS) {
     if (!Array.isArray(merged[key])) {
-      (merged as Record<string, unknown>)[key as string] = defaults[key];
+      (merged as Record<string, unknown>)[key] = defaults ? defaults[key] : [];
     }
   }
 
@@ -1329,17 +1383,6 @@ function migrate(persisted: Partial<Store>): Store {
     for (const item of scoped[key] ?? []) {
       if (!item.workspaceId) item.workspaceId = sharedWorkspace;
     }
-  }
-
-  // Profil dan workspace wajib ada; kalau berkas lama belum punya, pakai contoh.
-  if (!Array.isArray(merged.profiles) || merged.profiles.length === 0) {
-    merged.profiles = defaults.profiles;
-  }
-  if (!Array.isArray(merged.workspaces) || merged.workspaces.length === 0) {
-    merged.workspaces = defaults.workspaces;
-  }
-  if (!Array.isArray(merged.workspaceMembers) || merged.workspaceMembers.length === 0) {
-    merged.workspaceMembers = defaults.workspaceMembers;
   }
 
   return merged;
