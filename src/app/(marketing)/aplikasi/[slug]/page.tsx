@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { accentClasses, getVisibleApp, visibleApps } from "@/config/apps";
 import { formatIDR } from "@/lib/format";
+import { isCheckoutOpen } from "@/lib/payments";
 import { Badge } from "@/components/ui";
 import { Icon } from "@/components/ui/icon";
 
@@ -39,6 +40,7 @@ export default async function AppDetailPage({
 
   const accent = accentClasses[app.accent];
   const pricing = app.pricing;
+  const checkoutOpen = isCheckoutOpen();
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
@@ -142,10 +144,10 @@ export default async function AppDetailPage({
               </dl>
 
               <Link
-                href={`/beli/${app.id}`}
+                href={checkoutOpen ? `/beli/${app.id}` : "/contact"}
                 className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-emphasis bg-emphasis px-6 text-sm font-semibold text-on-emphasis hover:bg-ink-soft"
               >
-                Beli sekarang
+                {checkoutOpen ? "Beli sekarang" : "Tanya lewat kontak"}
                 <Icon name="arrow-right" size={14} strokeWidth={2.2} />
               </Link>
 

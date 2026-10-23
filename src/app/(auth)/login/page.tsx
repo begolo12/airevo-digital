@@ -130,7 +130,13 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
               ))}
             </ul>
           </div>
-          <p className="text-xs text-on-emphasis/50">Data contoh untuk demonstrasi.</p>
+          {showDemo ? (
+            <p className="text-xs text-on-emphasis/50">Data contoh untuk demonstrasi.</p>
+          ) : (
+            <p className="text-xs text-on-emphasis/50">
+              Akses hanya untuk pemilik lisensi.
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { visibleApps } from "@/config/apps";
 import { AppCard } from "@/components/marketing/app-card";
+import { isCheckoutOpen } from "@/lib/payments";
 import { Badge } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -27,6 +28,8 @@ const promises = [
 ];
 
 export default function AppsPage() {
+  const checkoutOpen = isCheckoutOpen();
+
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
       <header className="max-w-2xl">
@@ -68,7 +71,7 @@ export default function AppsPage() {
 
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {visibleApps.map((app, index) => (
-            <AppCard key={app.id} app={app} index={index} />
+            <AppCard key={app.id} app={app} index={index} checkoutOpen={checkoutOpen} />
           ))}
         </div>
       </section>

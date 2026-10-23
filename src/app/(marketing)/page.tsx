@@ -3,6 +3,7 @@ import { sellableApps, visibleApps } from "@/config/apps";
 import { site } from "@/config/site";
 import { AppCard } from "@/components/marketing/app-card";
 import { formatIDR } from "@/lib/format";
+import { isCheckoutOpen } from "@/lib/payments";
 import { Badge, Note } from "@/components/ui";
 import { Icon } from "@/components/ui/icon";
 
@@ -48,6 +49,7 @@ const whyOnce = [
 ];
 
 export default function HomePage() {
+  const checkoutOpen = isCheckoutOpen();
   const cheapest = sellableApps.reduce<number | null>(
     (min, app) =>
       app.pricing && (min === null || app.pricing.price < min) ? app.pricing.price : min,
@@ -208,7 +210,7 @@ export default function HomePage() {
 
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {visibleApps.map((app, index) => (
-              <AppCard key={app.id} app={app} index={index} />
+              <AppCard key={app.id} app={app} index={index} checkoutOpen={checkoutOpen} />
             ))}
           </div>
         </div>

@@ -49,7 +49,7 @@ export default async function CheckoutPage({ params }: PageProps<"/beli/[slug]">
         </p>
       </header>
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_0.85fr]">
+      <div className="mt-10 grid items-start gap-8 lg:grid-cols-[1fr_0.85fr]">
         <div className="rounded-[16px] border border-line-strong bg-card p-6">
           {open ? (
             <CheckoutForm productId={app.id} priceLabel={priceLabel} />

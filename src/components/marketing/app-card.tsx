@@ -10,7 +10,15 @@ const statusLabel: Record<AppEntry["status"], string> = {
   retired: "Diarsipkan",
 };
 
-export function AppCard({ app, index = 0 }: { app: AppEntry; index?: number }) {
+export function AppCard({
+  app,
+  index = 0,
+  checkoutOpen = true,
+}: {
+  app: AppEntry;
+  index?: number;
+  checkoutOpen?: boolean;
+}) {
   const accent = accentClasses[app.accent];
   const tilt = index % 3 === 0 ? "note-tilt-left" : index % 3 === 1 ? "" : "note-tilt-right";
   const pricing = app.pricing;
@@ -81,10 +89,10 @@ export function AppCard({ app, index = 0 }: { app: AppEntry; index?: number }) {
         </Link>
         {pricing ? (
           <Link
-            href={`/beli/${app.id}`}
+            href={checkoutOpen ? `/beli/${app.id}` : "/contact"}
             className="inline-flex h-9 items-center gap-1.5 rounded-full border border-emphasis bg-emphasis px-4 text-base font-bold text-on-emphasis hover:bg-ink-soft"
           >
-            Beli
+            {checkoutOpen ? "Beli" : "Tanya"}
             <Icon name="arrow-right" size={13} strokeWidth={2.2} />
           </Link>
         ) : (
