@@ -3,6 +3,12 @@
   "outputDirectory": "public",
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.airevo-digital.my.id" }],
+      "destination": "https://airevo-digital.my.id/:path*",
+      "permanent": true
+    },
+    {
       "source": "/minisoccer",
       "destination": "/minisoccer/",
       "permanent": false
