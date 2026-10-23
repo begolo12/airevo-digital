@@ -322,5 +322,34 @@ export function forgetKnownState(): void {
   knownIds.clear();
 }
 
+/**
+ * Menandai seluruh isi store sebagai sudah ada di database.
+ *
+ * `loadStore()` menandai baris apa adanya dari database, tetapi `migrate()`
+ * sesudahnya menambal field yang belum ada (mis. `workspaceId`). Tanpa
+ * penandaan ulang, sidik jari di memori tidak cocok dengan database dan setiap
+ * penyimpanan menulis ulang ~100 baris — belasan detik per klik simpan karena
+ * tiap baris satu round trip ke Neon.
+ */
+export function markStoreAsPersisted(store: Store): void {
+  for (const key of STATE_KEYS) {
+    const value = (store as unknown as Record<string, unknown>)[key];
+    if (value !== undefined) known.set(`state\u0000${key}`, fingerprint(value));
+  }
+
+  for (const collection of RECORD_COLLECTIONS) {
+    const rows = ((store as unknown as Record<string, unknown>)[collection] ??
+      []) as Array<{ id?: string }>;
+    const ids = new Set<string>();
+
+    for (const row of rows) {
+      if (!row.id) continue;
+      ids.add(row.id);
+      known.set(recordKey(collection, row.id), fingerprint(row));
+    }
+    knownIds.set(collection, ids);
+  }
+}
+
 /** Koleksi yang dipakai saat menyiapkan data contoh. */
 export type { RecordCollection, StateKey };
