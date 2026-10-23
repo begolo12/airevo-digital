@@ -313,7 +313,11 @@ export async function persistStore(store: Store): Promise<void> {
     knownIds.set(collection, present);
   }
 
-  await Promise.all(writes.map((run) => run()));
+  if (writes.length > 0) {
+    const startedAt = Date.now();
+    await Promise.all(writes.map((run) => run()));
+    console.log(`[store] ${writes.length} baris ditulis dalam ${Date.now() - startedAt} ms`);
+  }
 }
 
 /** Mengosongkan penanda agar penyimpanan berikutnya menulis ulang semuanya. */
