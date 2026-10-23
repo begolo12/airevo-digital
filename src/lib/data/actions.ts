@@ -2625,7 +2625,7 @@ export async function submitContact(formData: FormData): Promise<ActionResult> {
     ok: true,
     message: delivered
       ? "Pesan terkirim. Saya akan membalas dalam 1–2 hari kerja."
-      : "Pesan tersimpan. Email belum dikonfigurasi, jadi pesan masuk ke outbox lokal.",
+      : "Pesan Anda sudah tercatat. Saya akan membalas dalam 1–2 hari kerja.",
   };
 }
 

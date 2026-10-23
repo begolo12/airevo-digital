@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getSellableApp } from "@/config/apps";
 import { CheckoutForm } from "@/components/marketing/checkout-form";
 import { formatIDR } from "@/lib/format";
+import { isCheckoutOpen } from "@/lib/payments";
 import { Badge } from "@/components/ui";
 import { Icon } from "@/components/ui/icon";
 
@@ -24,6 +25,7 @@ export default async function CheckoutPage({ params }: PageProps<"/beli/[slug]">
   if (!app?.pricing) notFound();
 
   const priceLabel = formatIDR(app.pricing.price);
+  const open = isCheckoutOpen();
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-20">
@@ -38,17 +40,36 @@ export default async function CheckoutPage({ params }: PageProps<"/beli/[slug]">
       <header className="mt-6 max-w-xl">
         <p className="label-eyebrow">Pembelian</p>
         <h1 className="mt-2 text-[clamp(1.9rem,4.2vw,2.8rem)] leading-tight">
-          Selesaikan pesanan Anda.
+          {open ? "Selesaikan pesanan Anda." : `Beli ${app.name} lewat percakapan.`}
         </h1>
         <p className="mt-3 text-md leading-relaxed text-ink-soft">
-          Isi data di bawah untuk membuat kode pesanan. Setelah itu Anda akan
-          mendapat instruksi pembayaran.
+          {open
+            ? "Isi data di bawah untuk membuat kode pesanan. Setelah itu Anda akan mendapat instruksi pembayaran."
+            : "Pembelian otomatis belum dibuka. Ceritakan kebutuhan Anda, dan saya siapkan pesanan serta instruksi pembayarannya langsung."}
         </p>
       </header>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_0.85fr]">
         <div className="rounded-[16px] border border-line-strong bg-card p-6">
-          <CheckoutForm productId={app.id} priceLabel={priceLabel} />
+          {open ? (
+            <CheckoutForm productId={app.id} priceLabel={priceLabel} />
+          ) : (
+            <div className="grid gap-4">
+              <p className="text-base font-bold text-ink">Pembelian belum dibuka.</p>
+              <p className="text-md leading-relaxed text-ink-soft">
+                Rekening pembayaran belum disiapkan, jadi pesanan tidak bisa dibuat
+                otomatis. Kirim pesan lewat halaman kontak dan kami atur pembeliannya
+                langsung dengan Anda.
+              </p>
+              <Link
+                href="/contact"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-emphasis bg-emphasis px-6 text-sm font-semibold text-on-emphasis transition-colors hover:bg-ink-soft"
+              >
+                Hubungi kami
+                <Icon name="arrow-right" size={15} strokeWidth={2.2} />
+              </Link>
+            </div>
+          )}
         </div>
 
         <aside className="space-y-4">
@@ -88,9 +109,10 @@ export default async function CheckoutPage({ params }: PageProps<"/beli/[slug]">
             </ul>
           </div>
 
-          <p className="px-1 text-xs leading-relaxed text-muted">
-            Pembayaran saat ini diverifikasi manual, biasanya dalam 1×24 jam pada
-            hari kerja. Belum ada tagihan berulang di kemudian hari.
+          <p className="px-1 text-sm leading-relaxed text-muted">
+            {open
+              ? "Pembayaran diverifikasi manual, biasanya dalam 1×24 jam pada hari kerja. Tidak ada tagihan berulang."
+              : "Pembelian dibuka kembali setelah rekening pembayaran siap."}
           </p>
         </aside>
       </div>

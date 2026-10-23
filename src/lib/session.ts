@@ -66,10 +66,20 @@ export async function requireActiveSession(): Promise<Session> {
   return session;
 }
 
-/** Sesi dengan peran owner. Dipakai untuk halaman penjualan. */
+/**
+ * Sesi dengan peran owner. Dipakai untuk halaman penjualan.
+ *
+ * `stage` wajib `active`. Sesi level akun (baru lolos email + kata sandi) sudah
+ * membawa `role: "owner"`, tapi PIN profil belum pernah dimasukkan — tanpa
+ * pemeriksaan ini, halaman admin dan aksi penerbitan lisensi terbuka bagi siapa
+ * pun yang tahu kata sandi akun.
+ */
 export async function requireOwner(): Promise<Session> {
   const session = await getSession();
   if (!session) redirect("/login?next=/admin/pesanan");
+  if (session.stage !== "active" || !session.profileId) {
+    redirect("/pilih-profil?next=/admin/pesanan");
+  }
   if (session.role !== "owner") redirect("/keluarga");
   return session;
 }

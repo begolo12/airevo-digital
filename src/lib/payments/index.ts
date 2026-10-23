@@ -13,18 +13,19 @@ const providers: Record<PaymentProviderId, PaymentProvider> = {
 };
 
 /**
- * Provider yang dipakai saat ini.
+ * Provider yang dipakai saat ini, atau `null` bila tidak ada yang siap.
  *
- * Diatur lewat `PAYMENT_PROVIDER`. Jika nilainya tidak dikenal atau provider
- * belum dikonfigurasi, aplikasi jatuh ke transfer manual agar checkout tetap
- * bisa diselesaikan — bukan gagal diam-diam.
+ * Diatur lewat `PAYMENT_PROVIDER`. Bila nilainya tidak dikenal atau provider
+ * itu belum dikonfigurasi, aplikasi jatuh ke transfer manual — tetapi hanya
+ * kalau rekeningnya memang terisi. Tidak ada rekening bawaan: daripada pembeli
+ * mentransfer ke nomor contoh, checkout ditutup.
  */
-export function getPaymentProvider(): PaymentProvider {
+export function getPaymentProvider(): PaymentProvider | null {
   const requested = process.env.PAYMENT_PROVIDER as PaymentProviderId | undefined;
   const candidate = requested ? providers[requested] : undefined;
 
   if (candidate?.isConfigured()) return candidate;
-  return manualProvider;
+  return manualProvider.isConfigured() ? manualProvider : null;
 }
 
 /** Daftar provider beserta status kesiapannya, untuk halaman pengaturan. */
@@ -34,4 +35,9 @@ export function listPaymentProviders() {
     label: provider.label,
     configured: provider.isConfigured(),
   }));
+}
+
+/** Apakah pembelian bisa dilanjutkan sekarang. */
+export function isCheckoutOpen(): boolean {
+  return getPaymentProvider() !== null;
 }

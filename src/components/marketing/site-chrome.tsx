@@ -47,7 +47,7 @@ export function SiteHeader() {
             href="/contact"
             className="inline-flex h-10 items-center rounded-full border border-emphasis bg-emphasis px-4 text-sm font-semibold text-on-emphasis transition-colors hover:bg-ink-soft"
           >
-            Konsultasi
+            Mulai percakapan
           </Link>
         </div>
 
@@ -56,7 +56,7 @@ export function SiteHeader() {
             <span className="sr-only">Buka menu</span>
             <Icon name="menu" size={18} strokeWidth={2} />
           </summary>
-          <div className="absolute right-0 mt-2 w-56 rounded-[14px] border border-line-strong bg-card p-2 shadow-[var(--shadow-lift)]">
+          <div className="absolute right-0 mt-2 w-60 rounded-[14px] border border-line-strong bg-card p-2 shadow-[var(--shadow-lift)]">
             {[...navigation, { label: "Masuk", href: "/login" }].map((item) => (
               <Link
                 key={item.href}
@@ -66,6 +66,17 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
+            {/*
+              CTA utama ikut ke menu mobile. Tanpa ini, satu-satunya tombol
+              kontak hilang di layar sempit — justru perangkat yang paling
+              banyak dipakai pengunjung.
+            */}
+            <Link
+              href="/contact"
+              className="mt-1 flex h-10 items-center justify-center rounded-lg border border-emphasis bg-emphasis px-3 text-sm font-semibold text-on-emphasis"
+            >
+              Mulai percakapan
+            </Link>
           </div>
         </details>
       </div>

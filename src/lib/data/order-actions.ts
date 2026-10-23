@@ -95,6 +95,12 @@ export async function createOrder(
   }
 
   const provider = getPaymentProvider();
+  if (!provider) {
+    return fail(
+      "Pembelian belum dibuka. Hubungi kami lewat halaman kontak untuk memesan manual.",
+    );
+  }
+
   const code = newOrderCode();
 
   let payment;

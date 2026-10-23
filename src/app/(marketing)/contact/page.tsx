@@ -49,8 +49,7 @@ export default function ContactPage() {
         <div className="note p-6 sm:p-8">
           <h2 className="text-lg">Form kontak</h2>
           <p className="mt-1 text-sm text-muted">
-            Divalidasi di server, dibatasi 5 pesan per jam, dan dikirim lewat Resend
-            bila API key tersedia.
+            Saya membalas langsung ke email Anda, biasanya dalam {site.responseTime}.
           </p>
 
           <div className="mt-6">

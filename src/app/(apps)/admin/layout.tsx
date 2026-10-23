@@ -13,6 +13,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const session = await requireOwner();
   const providers = listPaymentProviders();
   const active = providers.find((provider) => provider.configured);
+  const unconfigured = providers
+    .filter((provider) => !provider.configured)
+    .map((provider) => provider.label);
 
   return (
     <div className="min-h-screen bg-paper">
@@ -49,14 +52,19 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
       <main className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-8">
         <div className="mb-6 rounded-[10px] border border-line bg-paper-deep/50 px-4 py-2.5 text-base text-ink-soft">
-          Pembayaran aktif:{" "}
-          <strong>{active?.label ?? "Transfer bank"}</strong>
-          {" · "}
-          {providers
-            .filter((provider) => !provider.configured)
-            .map((provider) => provider.label)
-            .join(", ") || "semua gateway"}{" "}
-          belum dikonfigurasi.
+          {active ? (
+            <>
+              Pembayaran aktif: <strong>{active.label}</strong>
+              {unconfigured.length > 0 ? ` · ${unconfigured.join(", ")} belum dikonfigurasi.` : "."}
+            </>
+          ) : (
+            <>
+              <strong>Pembelian ditutup.</strong> Tidak ada metode pembayaran yang
+              siap — isi <code className="font-mono text-xs">PAYMENT_BANK_NAME</code>,{" "}
+              <code className="font-mono text-xs">PAYMENT_BANK_ACCOUNT</code>, dan{" "}
+              <code className="font-mono text-xs">PAYMENT_BANK_HOLDER</code>.
+            </>
+          )}
         </div>
         {children}
       </main>

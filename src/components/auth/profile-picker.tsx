@@ -210,10 +210,6 @@ export function ProfilePicker({
             Lupa PIN?
           </button>
         ) : null}
-
-        {selected.hasPin ? (
-          <p className="mt-3 text-xs text-muted">PIN demo: 1234</p>
-        ) : null}
       </div>
     </form>
   );

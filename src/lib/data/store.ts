@@ -5,6 +5,7 @@ import {
   safeDueDate,
   todayISO,
 } from "@/lib/format";
+import { randomBytes } from "node:crypto";
 import { hashPassword, hashPin } from "@/lib/auth/password";
 import { clearPersisted, readPersisted, writePersisted } from "./persist";
 import {
@@ -36,6 +37,29 @@ export const WS = {
 
 /** PIN bawaan untuk data contoh. */
 const DEMO_PIN = "1234";
+
+/**
+ * Kata sandi akun bawaan.
+ *
+ * Di produksi, kata sandi contoh yang tertulis di dokumentasi berarti siapa pun
+ * yang membacanya bisa masuk sebagai pemilik. `AIREVO_OWNER_PASSWORD` dipakai
+ * bila diisi; tanpa itu, produksi memakai kata sandi acak yang dicatat sekali di
+ * log server — tidak bisa ditebak, dan pemilik tetap bisa mengambilnya.
+ */
+function seedPassword(): string {
+  const fromEnv = process.env.AIREVO_OWNER_PASSWORD?.trim();
+  if (fromEnv) return fromEnv;
+
+  if (process.env.NODE_ENV === "production") {
+    const generated = randomBytes(18).toString("base64url");
+    console.warn(
+      `[seed] AIREVO_OWNER_PASSWORD belum diisi. Kata sandi awal akun pemilik: ${generated} — segera ganti setelah masuk.`,
+    );
+    return generated;
+  }
+
+  return "airevo123";
+}
 
 function seedProfiles(): Profile[] {
   const now = new Date().toISOString();
@@ -151,6 +175,8 @@ function seedWorkspaceMembers(): WorkspaceMember[] {
 }
 
 function seedBase(): Store {
+  const password = seedPassword();
+
   return {
     household: {
       name: "Keluarga Irvan",
@@ -162,7 +188,7 @@ function seedBase(): Store {
         id: "u-irvan",
         email: "irvan@airevo-digital.my.id",
         name: "Irvan",
-        passwordHash: hashPassword("airevo123"),
+        passwordHash: hashPassword(password),
         memberId: "m-irvan",
         role: "owner",
         createdAt: new Date().toISOString(),
@@ -171,7 +197,7 @@ function seedBase(): Store {
         id: "u-sari",
         email: "sari@airevo-digital.my.id",
         name: "Sari",
-        passwordHash: hashPassword("airevo123"),
+        passwordHash: hashPassword(password),
         memberId: "m-sari",
         role: "adult",
         createdAt: new Date().toISOString(),

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, afterEach, describe, expect, it } from "vitest";
 import { visibleApps, sellableApps, getApp, getVisibleApp, getSellableApp } from "@/config/apps";
 import { getStore, resetStore } from "@/lib/data/store";
 import {
@@ -9,7 +9,8 @@ import {
   orderByCode,
   salesSummary,
 } from "@/lib/data/orders";
-import { getPaymentProvider, listPaymentProviders } from "@/lib/payments";
+import { getPaymentProvider, isCheckoutOpen, listPaymentProviders } from "@/lib/payments";
+import { manualProvider } from "@/lib/payments/manual";
 
 beforeEach(() => {
   resetStore();
@@ -55,21 +56,70 @@ describe("katalog produk", () => {
 });
 
 describe("provider pembayaran", () => {
-  it("jatuh ke transfer manual bila gateway belum dikonfigurasi", () => {
+  const saved = {
+    name: process.env.PAYMENT_BANK_NAME,
+    account: process.env.PAYMENT_BANK_ACCOUNT,
+    holder: process.env.PAYMENT_BANK_HOLDER,
+    provider: process.env.PAYMENT_PROVIDER,
+  };
+
+  function clearBankEnv() {
+    delete process.env.PAYMENT_BANK_NAME;
+    delete process.env.PAYMENT_BANK_ACCOUNT;
+    delete process.env.PAYMENT_BANK_HOLDER;
+    delete process.env.PAYMENT_PROVIDER;
+  }
+
+  function setBankEnv() {
+    process.env.PAYMENT_BANK_NAME = "BCA";
+    process.env.PAYMENT_BANK_ACCOUNT = "0000000000";
+    process.env.PAYMENT_BANK_HOLDER = "Uji";
+  }
+
+  afterEach(() => {
+    clearBankEnv();
+    if (saved.name) process.env.PAYMENT_BANK_NAME = saved.name;
+    if (saved.account) process.env.PAYMENT_BANK_ACCOUNT = saved.account;
+    if (saved.holder) process.env.PAYMENT_BANK_HOLDER = saved.holder;
+    if (saved.provider) process.env.PAYMENT_PROVIDER = saved.provider;
+  });
+
+  it("checkout tertutup saat rekening belum diisi", () => {
+    clearBankEnv();
+    expect(getPaymentProvider()).toBeNull();
+    expect(isCheckoutOpen()).toBe(false);
+  });
+
+  it("tidak pernah memakai rekening bawaan", async () => {
+    clearBankEnv();
+    await expect(
+      manualProvider.createPayment({
+        orderCode: "ARV-TEST0",
+        productName: "Keluarga",
+        amount: 49_000,
+        customer: { name: "Uji", email: "uji@contoh.id" },
+      }),
+    ).rejects.toThrow(/belum dikonfigurasi/);
+  });
+
+  it("memakai transfer manual setelah rekening lengkap", () => {
+    setBankEnv();
     const provider = getPaymentProvider();
-    expect(provider.id).toBe("manual");
-    expect(provider.isConfigured()).toBe(true);
+    expect(provider?.id).toBe("manual");
+    expect(provider?.isConfigured()).toBe(true);
+    expect(isCheckoutOpen()).toBe(true);
   });
 
   it("melaporkan status semua provider", () => {
+    setBankEnv();
     const providers = listPaymentProviders();
-    const ids = providers.map((p) => p.id);
-    expect(ids).toEqual(["manual", "xendit", "midtrans"]);
+    expect(providers.map((p) => p.id)).toEqual(["manual", "xendit", "midtrans"]);
     expect(providers.find((p) => p.id === "manual")?.configured).toBe(true);
   });
 
   it("membuat instruksi transfer yang memuat kode pesanan", async () => {
-    const result = await getPaymentProvider().createPayment({
+    setBankEnv();
+    const result = await manualProvider.createPayment({
       orderCode: "ARV-TEST1",
       productName: "Keluarga",
       amount: 49_000,
@@ -77,7 +127,7 @@ describe("provider pembayaran", () => {
     });
 
     expect(result.method).toBe("bank_transfer");
-    expect(result.bankAccount?.number).toBeTruthy();
+    expect(result.bankAccount?.number).toBe("0000000000");
     expect(result.instructions.join(" ")).toContain("ARV-TEST1");
     expect(result.instructions.join(" ")).toContain("49.000");
   });

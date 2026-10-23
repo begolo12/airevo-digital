@@ -15,17 +15,33 @@ pnpm dev
 
 Buka `http://localhost:3000`.
 
-Masuk ke aplikasi Keluarga di `/login`:
+Masuk ke aplikasi Keluarga di `/login` (hanya di mode pengembangan):
 
-| Peran | Email | Kata sandi |
-| --- | --- | --- |
-| Pemilik | `irvan@airevo-digital.my.id` | `airevo123` |
-| Pasangan | `sari@airevo-digital.my.id` | `airevo123` |
+| Peran | Email | Kata sandi | PIN profil |
+| --- | --- | --- | --- |
+| Pemilik | `irvan@airevo-digital.my.id` | `airevo123` | `1234` |
+| Pasangan | `sari@airevo-digital.my.id` | `airevo123` | `1234` |
 
 Masuk sebagai pasangan untuk melihat bagaimana data `private` milik pemilik disembunyikan.
 
+Di produksi kata sandi akun bawaan **tidak** memakai nilai contoh di atas:
+isi `AIREVO_OWNER_PASSWORD`. Bila kosong, server membuat kata sandi acak dan
+mencetaknya sekali di log — kredensial contoh tidak pernah ditampilkan di UI
+produksi.
+
 Tidak perlu `.env.local` untuk mencoba. Salin `.env.example` bila ingin mengisi
 `SESSION_SECRET`, `RESEND_API_KEY`, atau `DATABASE_URL`.
+
+Penjualan otomatis hanya menyala setelah rekening tujuan diisi:
+
+```bash
+PAYMENT_BANK_NAME=BCA
+PAYMENT_BANK_ACCOUNT=<nomor rekening>
+PAYMENT_BANK_HOLDER=<nama pemilik rekening>
+```
+
+Tanpa ketiganya, halaman `/beli/[slug]` menutup checkout dan mengarahkan pembeli
+ke kontak. Tidak ada rekening contoh sebagai cadangan.
 
 ```bash
 pnpm lint        # ESLint

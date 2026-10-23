@@ -22,6 +22,14 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     typeof params.next === "string" ? params.next : undefined,
   );
 
+  /*
+   * Kredensial contoh hanya untuk pengembangan. Di produksi, kata sandi akun
+   * bawaan berasal dari `AIREVO_OWNER_PASSWORD` (atau acak), jadi menampilkannya
+   * di halaman ini bukan hanya salah — ia memberi tahu penyerang akun mana yang
+   * layak ditebak.
+   */
+  const showDemo = process.env.NODE_ENV !== "production";
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="flex flex-col justify-center px-6 py-16 sm:px-12">
@@ -50,7 +58,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
                     required
                     className={inputClass}
                     placeholder="nama@keluarga.id"
-                    defaultValue="irvan@airevo-digital.my.id"
+                    defaultValue={showDemo ? "irvan@airevo-digital.my.id" : undefined}
                   />
                 </Field>
                 <Field label="Kata sandi">
@@ -67,26 +75,28 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
             </ActionForm>
           </div>
 
-          <div className="mt-8 rounded-[12px] border border-butter-deep bg-butter/35 px-4 py-3">
-            <p className="text-base font-bold text-ink">Akun demo</p>
-            <ul className="mt-1.5 space-y-1 text-base text-ink-soft">
-              <li>
-                <span className="font-semibold">Pemilik:</span>{" "}
-                irvan@airevo-digital.my.id
-              </li>
-              <li>
-                <span className="font-semibold">Pasangan:</span>{" "}
-                sari@airevo-digital.my.id
-              </li>
-              <li>
-                <span className="font-semibold">Kata sandi:</span> airevo123
-              </li>
-            </ul>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
-              Akun pasangan dipakai untuk melihat bagaimana data privat pemilik
-              disembunyikan.
-            </p>
-          </div>
+          {showDemo ? (
+            <div className="mt-8 rounded-[12px] border border-butter-deep bg-butter/35 px-4 py-3">
+              <p className="text-base font-bold text-ink">Akun demo</p>
+              <ul className="mt-1.5 space-y-1 text-base text-ink-soft">
+                <li>
+                  <span className="font-semibold">Pemilik:</span>{" "}
+                  irvan@airevo-digital.my.id
+                </li>
+                <li>
+                  <span className="font-semibold">Pasangan:</span>{" "}
+                  sari@airevo-digital.my.id
+                </li>
+                <li>
+                  <span className="font-semibold">Kata sandi:</span> airevo123
+                </li>
+              </ul>
+              <p className="mt-2 text-sm leading-relaxed text-muted">
+                Akun pasangan dipakai untuk melihat bagaimana data privat pemilik
+                disembunyikan.
+              </p>
+            </div>
+          ) : null}
 
           <p className="mt-6 text-base text-muted">
             Tidak ada pendaftaran publik. Anggota baru ditambahkan oleh pemilik

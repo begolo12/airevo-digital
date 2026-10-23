@@ -89,11 +89,11 @@ export default function HomePage() {
                 href="/contact"
                 className="inline-flex h-12 items-center rounded-full border border-line-strong bg-card px-6 text-md font-semibold text-ink transition-colors hover:bg-paper-deep"
               >
-                Minta dibuatkan
+                Mulai percakapan
               </Link>
             </div>
 
-            <dl className="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-line pt-6">
+            <dl className="mt-10 grid max-w-lg grid-cols-3 gap-x-4 gap-y-3 border-t border-line pt-6">
               {[
                 { k: String(visibleApps.length), v: "aplikasi siap pakai" },
                 {
@@ -102,9 +102,11 @@ export default function HomePage() {
                 },
                 { k: "0", v: "langganan bulanan" },
               ].map((item) => (
-                <div key={item.v}>
-                  <dt className="text-2xl font-black tnum">{item.k}</dt>
-                  <dd className="mt-1 text-xs leading-snug text-muted">{item.v}</dd>
+                <div key={item.v} className="min-w-0">
+                  <dt className="text-[clamp(1.125rem,4.8vw,1.75rem)] leading-tight font-black tnum whitespace-nowrap">
+                    {item.k}
+                  </dt>
+                  <dd className="mt-1 text-sm leading-snug text-muted">{item.v}</dd>
                 </div>
               ))}
             </dl>
