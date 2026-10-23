@@ -31,19 +31,23 @@ const nextConfig: NextConfig = {
     },
   },
   /*
-   * `/minisoccer/` diproksi ke proyek Vercel lain dan memakai base href
-   * `/minisoccer/`. Tanpa ini Next.js membuang garis miring di akhir sehingga
-   * redirect kita sendiri berbalik arah dan berputar tanpa henti.
+   * `/minisoccer/` diproksi ke proyek Vercel lain yang memakai base href
+   * `/minisoccer/`. Next.js membuang garis miring di akhir dengan 308 sebelum
+   * rewrite sempat jalan; Flutter lalu meresolusi `flutter_bootstrap.js`
+   * relatif terhadap `/minisoccer` dan memintanya di akar — hasilnya layar
+   * hitam. Normalisasi itu dimatikan agar jalur yang diproksi utuh.
+   *
+   * Konsekuensinya `/about/` juga melayani 200, bukan redirect. Metadata
+   * canonical tiap halaman sudah menunjuk satu URL, jadi mesin pencari tidak
+   * melihat dua halaman berbeda.
    */
   skipTrailingSlashRedirect: true,
   async rewrites() {
     return [
       /*
        * Akar jalur dan aset dipisah: `:path+` tidak cocok untuk jalur kosong,
-       * sehingga `/minisoccer/` akan 404 tanpa aturan pertama. Varian tanpa
-       * garis miring juga diproksi langsung — bukan di-redirect, karena
-       * `source: "/minisoccer"` ikut cocok dengan bentuk bergaris miring dan
-       * membuat loop.
+       * sehingga akar butuh aturannya sendiri. Varian tanpa garis miring
+       * diproksi langsung, bukan di-redirect, agar tidak berputar.
        */
       { source: "/minisoccer", destination: `${MINISOCCER_ORIGIN}/minisoccer/` },
       { source: "/minisoccer/", destination: `${MINISOCCER_ORIGIN}/minisoccer/` },
