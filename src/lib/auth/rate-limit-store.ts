@@ -32,6 +32,7 @@ import "server-only";
  */
 
 import { eq } from "drizzle-orm";
+import { after } from "next/server";
 import { db } from "@/lib/db";
 import { appState } from "@/lib/db/records";
 
@@ -57,12 +58,45 @@ let lastWrite = 0;
 let writing: Promise<void> | null = null;
 let pending: Snapshot | null = null;
 
+async function flush(): Promise<void> {
+  try {
+    while (pending) {
+      const current = pending;
+      pending = null;
+
+      await db!
+        .insert(appState)
+        .values({ key: STATE_KEY, value: current, updatedAt: new Date() })
+        .onConflictDoUpdate({
+          target: appState.key,
+          set: { value: current, updatedAt: new Date() },
+        });
+
+      lastWrite = Date.now();
+    }
+  } catch (error) {
+    console.error(
+      "[rate-limit] gagal menyimpan hitungan:",
+      error instanceof Error ? error.message : error,
+    );
+  } finally {
+    writing = null;
+  }
+}
+
 /**
  * Menyalin keadaan ke Postgres.
  *
  * Bila dipanggil saat penulisan sebelumnya masih berjalan, keadaan terbaru
  * disimpan di `pending` dan ditulis setelahnya — tidak ada penulisan yang
  * hilang, dan tidak ada penulisan bersamaan ke baris yang sama.
+ *
+ * ## Kenapa dibungkus `after()`
+ *
+ * Di Vercel, eksekusi fungsi dihentikan begitu respons terkirim. Penulisan
+ * yang dijalankan "di latar belakang" tanpa penjaga akan terputus di tengah
+ * query dan gagal terus-menerus. `after()` meminta platform menahan fungsi
+ * sampai callback selesai.
  */
 export async function persistRateLimits(snapshot: Snapshot): Promise<void> {
   if (!db) return;
@@ -73,31 +107,14 @@ export async function persistRateLimits(snapshot: Snapshot): Promise<void> {
   if (writing) return;
   if (now - lastWrite < writeIntervalMs) return;
 
-  writing = (async () => {
-    try {
-      while (pending) {
-        const current = pending;
-        pending = null;
+  writing = flush();
 
-        await db
-          .insert(appState)
-          .values({ key: STATE_KEY, value: current, updatedAt: new Date() })
-          .onConflictDoUpdate({
-            target: appState.key,
-            set: { value: current, updatedAt: new Date() },
-          });
-
-        lastWrite = Date.now();
-      }
-    } catch (error) {
-      console.error(
-        "[rate-limit] gagal menyimpan hitungan:",
-        error instanceof Error ? error.message : error,
-      );
-    } finally {
-      writing = null;
-    }
-  })();
+  try {
+    after(() => writing ?? Promise.resolve());
+  } catch {
+    // Dipanggil di luar siklus permintaan (mis. test atau skrip): tidak apa-apa,
+    // pemanggil tetap menunggu promise yang sama di bawah.
+  }
 
   await writing;
 }
