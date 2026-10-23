@@ -52,6 +52,18 @@ export const RECORD_COLLECTIONS = [
   "documents",
   "healthRecords",
   "educationRecords",
+  /*
+   * Pesanan, lisensi, dan pesan kontak ikut per baris.
+   *
+   * Sebelumnya ketiganya disimpan sebagai satu array di `app_state`. Dengan
+   * lebih dari satu instance (Vercel), dua permintaan bersamaan memegang
+   * salinan array masing-masing dan yang menulis terakhir menimpa yang lain —
+   * pesanan dan pesan hilang tanpa error. Satu baris per entitas membuat
+   * penambahan tidak saling menimpa.
+   */
+  "orders",
+  "licenses",
+  "messages",
 ] as const;
 
 type RecordCollection = (typeof RECORD_COLLECTIONS)[number];
@@ -63,10 +75,15 @@ const STATE_KEYS = [
   "profiles",
   "workspaces",
   "workspaceMembers",
-  "orders",
-  "licenses",
-  "messages",
 ] as const;
+
+/**
+ * Koleksi yang dulu tinggal di `app_state`.
+ *
+ * Dibaca sekali untuk memindahkan data lama ke penyimpanan per baris; setelah
+ * dipindahkan, baris `app_state`-nya dihapus.
+ */
+const LEGACY_STATE_COLLECTIONS = ["orders", "licenses", "messages"] as const;
 
 type StateKey = (typeof STATE_KEYS)[number];
 
@@ -84,6 +101,15 @@ function fingerprint(value: unknown): string {
 
 /** Salinan terakhir yang sudah ada di database, dipakai untuk menghitung selisih. */
 const known = new Map<string, string>();
+
+/**
+ * Id yang diketahui ada di database per koleksi.
+ *
+ * Tanpa ini, setiap penyimpanan harus menjalankan satu SELECT per koleksi (18
+ * kueri) hanya untuk mencari baris yang hilang. Di Neon serverless, 18 round
+ * trip berarti pengguna menunggu belasan detik setelah menekan tombol simpan.
+ */
+const knownIds = new Map<string, Set<string>>();
 
 function recordKey(collection: string, id: string): string {
   return `${collection}\u0000${id}`;
@@ -113,12 +139,18 @@ export async function loadStore(): Promise<Partial<Store> | null> {
   const result: Record<string, unknown> = {};
 
   for (const key of STATE_KEYS) {
-    if (state.has(key)) result[key] = state.get(key);
+    if (state.has(key)) {
+      result[key] = state.get(key);
+      // Tanpa ini, penyimpanan pertama setelah instance baru selalu menulis
+      // ulang seluruh keadaan tunggal meski isinya tidak berubah.
+      known.set(`state\u0000${key}`, fingerprint(state.get(key)));
+    }
   }
 
   // Koleksi per baris dirakit kembali menjadi array.
   for (const collection of RECORD_COLLECTIONS) {
     result[collection] = [];
+    knownIds.set(collection, new Set());
   }
 
   for (const row of recordRows) {
@@ -128,8 +160,61 @@ export async function loadStore(): Promise<Partial<Store> | null> {
       const data = row.data as { id?: string };
       if (data.id) {
         known.set(recordKey(row.collection, data.id), fingerprint(row.data));
+        knownIds.get(row.collection)?.add(data.id);
       }
     }
+  }
+
+  /*
+   * Pindahkan koleksi lama dari `app_state` ke baris sendiri.
+   *
+   * Hanya berjalan bila belum ada satu pun baris untuk koleksi itu, jadi
+   * penghapusan yang disengaja tidak dihidupkan lagi dari nilai lama. Setelah
+   * baris tertulis, baris `app_state`-nya dihapus supaya tidak ada dua sumber
+   * kebenaran.
+   */
+  const migration: Array<() => Promise<unknown>> = [];
+
+  for (const key of LEGACY_STATE_COLLECTIONS) {
+    const bucket = result[key];
+    if (!Array.isArray(bucket) || bucket.length > 0) continue;
+
+    const legacy = state.get(key);
+    if (!Array.isArray(legacy) || legacy.length === 0) continue;
+
+    result[key] = legacy;
+    const ids = knownIds.get(key) ?? new Set<string>();
+
+    for (const item of legacy as Array<{ id?: string; workspaceId?: string }>) {
+      if (!item.id) continue;
+      known.set(recordKey(key, item.id), fingerprint(item));
+      ids.add(item.id);
+
+      migration.push(async () => {
+        await db!
+          .insert(workspaceRecords)
+          .values({
+            collection: key,
+            id: item.id as string,
+            workspaceId: item.workspaceId ?? null,
+            data: item as object,
+            updatedAt: new Date(),
+          })
+          .onConflictDoUpdate({
+            target: [workspaceRecords.collection, workspaceRecords.id],
+            set: { data: item as object, workspaceId: item.workspaceId ?? null },
+          });
+      });
+    }
+
+    knownIds.set(key, ids);
+    migration.push(async () => {
+      await db!.delete(appState).where(eq(appState.key, key));
+    });
+  }
+
+  if (migration.length > 0) {
+    await Promise.all(migration.map((run) => run()));
   }
 
   return result as Partial<Store>;
@@ -206,13 +291,13 @@ export async function persistStore(store: Store): Promise<void> {
       known.set(key, hash);
     }
 
-    // Hapus baris yang sudah tidak ada di memori.
-    const stored = await database
-      .select({ id: workspaceRecords.id })
-      .from(workspaceRecords)
-      .where(eq(workspaceRecords.collection, collection));
-
-    const removed = stored.map((row) => row.id).filter((id) => !present.has(id));
+    /*
+     * Baris yang hilang dihitung dari daftar id di memori, bukan dari SELECT
+     * per koleksi. Sebelumnya setiap penyimpanan menjalankan 18 kueri hanya
+     * untuk mencari baris terhapus — penyebab utama formulir terasa macet.
+     */
+    const previous = knownIds.get(collection) ?? new Set<string>();
+    const removed = [...previous].filter((id) => !present.has(id));
 
     if (removed.length > 0) {
       writes.push(async () => {
@@ -224,6 +309,8 @@ export async function persistStore(store: Store): Promise<void> {
       });
       for (const id of removed) known.delete(recordKey(collection, id));
     }
+
+    knownIds.set(collection, present);
   }
 
   await Promise.all(writes.map((run) => run()));
@@ -232,6 +319,7 @@ export async function persistStore(store: Store): Promise<void> {
 /** Mengosongkan penanda agar penyimpanan berikutnya menulis ulang semuanya. */
 export function forgetKnownState(): void {
   known.clear();
+  knownIds.clear();
 }
 
 /** Koleksi yang dipakai saat menyiapkan data contoh. */
