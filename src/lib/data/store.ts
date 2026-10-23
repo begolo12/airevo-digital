@@ -13,7 +13,6 @@ import {
   forgetKnownState,
   isDatabaseEnabled,
   loadStore,
-  markStoreAsPersisted,
   persistStore,
 } from "@/lib/db/pg-store";
 import type { Profile, Store, Workspace, WorkspaceMember } from "./types";
@@ -1389,13 +1388,6 @@ export async function hydrateStore(): Promise<boolean> {
     }
 
     globalStore.__airevoStore = migrate(loaded);
-    /*
-     * migrate() menambal field yang belum ada di database (mis. `workspaceId`),
-     * sehingga sidik jari di memori tidak lagi sama dengan baris tersimpan.
-     * Tanpa penandaan ulang, penyimpanan berikutnya menulis ulang seluruh
-     * koleksi — belasan detik karena satu round trip per baris ke Neon.
-     */
-    markStoreAsPersisted(globalStore.__airevoStore);
     return true;
   } catch (error) {
     console.error(

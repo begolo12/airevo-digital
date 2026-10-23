@@ -111,6 +111,46 @@ const known = new Map<string, string>();
  */
 const knownIds = new Map<string, Set<string>>();
 
+/**
+ * Apakah `known` sudah disamakan dengan isi database di modul ini.
+ *
+ * Next.js menjalankan `instrumentation.ts` dan route handler dalam salinan modul
+ * yang berbeda, sehingga peta di atas bisa kosong meski `loadStore()` sudah
+ * jalan. Tanpa penyelarasan ulang, penyimpanan pertama di tiap instance
+ * menulis ulang seluruh koleksi.
+ */
+let knownSynced = false;
+
+async function syncKnownFromDatabase(database: NonNullable<typeof db>): Promise<void> {
+  if (knownSynced) return;
+  knownSynced = true;
+
+  const [stateRows, recordRows] = await Promise.all([
+    database.select({ key: appState.key, value: appState.value }).from(appState),
+    database
+      .select({
+        collection: workspaceRecords.collection,
+        id: workspaceRecords.id,
+        data: workspaceRecords.data,
+      })
+      .from(workspaceRecords),
+  ]);
+
+  for (const row of stateRows) {
+    known.set(`state\u0000${row.key}`, fingerprint(row.value));
+  }
+
+  for (const row of recordRows) {
+    known.set(recordKey(row.collection, row.id), fingerprint(row.data));
+    let ids = knownIds.get(row.collection);
+    if (!ids) {
+      ids = new Set();
+      knownIds.set(row.collection, ids);
+    }
+    ids.add(row.id);
+  }
+}
+
 function recordKey(collection: string, id: string): string {
   return `${collection}\u0000${id}`;
 }
@@ -232,6 +272,8 @@ export async function persistStore(store: Store): Promise<void> {
   const database = db;
   if (!database) return;
 
+  await syncKnownFromDatabase(database);
+
   const writes: Array<() => Promise<unknown>> = [];
   const now = new Date();
 
@@ -344,35 +386,7 @@ export async function persistStore(store: Store): Promise<void> {
 export function forgetKnownState(): void {
   known.clear();
   knownIds.clear();
-}
-
-/**
- * Menandai seluruh isi store sebagai sudah ada di database.
- *
- * `loadStore()` menandai baris apa adanya dari database, tetapi `migrate()`
- * sesudahnya menambal field yang belum ada (mis. `workspaceId`). Tanpa
- * penandaan ulang, sidik jari di memori tidak cocok dengan database dan setiap
- * penyimpanan menulis ulang ~100 baris — belasan detik per klik simpan karena
- * tiap baris satu round trip ke Neon.
- */
-export function markStoreAsPersisted(store: Store): void {
-  for (const key of STATE_KEYS) {
-    const value = (store as unknown as Record<string, unknown>)[key];
-    if (value !== undefined) known.set(`state\u0000${key}`, fingerprint(value));
-  }
-
-  for (const collection of RECORD_COLLECTIONS) {
-    const rows = ((store as unknown as Record<string, unknown>)[collection] ??
-      []) as Array<{ id?: string }>;
-    const ids = new Set<string>();
-
-    for (const row of rows) {
-      if (!row.id) continue;
-      ids.add(row.id);
-      known.set(recordKey(collection, row.id), fingerprint(row));
-    }
-    knownIds.set(collection, ids);
-  }
+  knownSynced = false;
 }
 
 /** Koleksi yang dipakai saat menyiapkan data contoh. */
